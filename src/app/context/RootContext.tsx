@@ -17,6 +17,7 @@ import ChainProvider, { ChainContext } from "./ChainContext";
 import ToastProvider, { ToastContext } from "./ToastContext";
 import TimerProvider, { TimerContext } from "./TimerContext";
 import AlchemyProvider, { AlchemyContext } from "./AlchemyContext";
+import { LazyMotion, domAnimation } from "framer-motion";
 
 // Setup queryClient
 const customSepolia = { ...sepolia } as Chain;
@@ -56,21 +57,23 @@ export function ContextProvider({
   const queryClient = new QueryClient();
 
   return (
-    <ToastProvider>
-      <WagmiProvider config={config} reconnectOnMount={true}>
-        <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider theme={isDark ? darkTheme() : lightTheme()}>
-            <TimerProvider>
-              <ChainProvider>
-                <AlchemyProvider>
-                  <TransactionProvider>{children}</TransactionProvider>
-                </AlchemyProvider>
-              </ChainProvider>
-            </TimerProvider>
-          </RainbowKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </ToastProvider>
+    <LazyMotion features={domAnimation}>
+      <ToastProvider>
+        <WagmiProvider config={config} reconnectOnMount={true}>
+          <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider theme={isDark ? darkTheme() : lightTheme()}>
+              <TimerProvider>
+                <ChainProvider>
+                  <AlchemyProvider>
+                    <TransactionProvider>{children}</TransactionProvider>
+                  </AlchemyProvider>
+                </ChainProvider>
+              </TimerProvider>
+            </RainbowKitProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </ToastProvider>
+    </LazyMotion>
   );
 }
 

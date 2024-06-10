@@ -91,12 +91,10 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   useAccountEffect({
     onConnect() {
-      console.log("ASD");
       setIsConnected(true);
       localStorage.setItem("isConnected", "true");
     },
     onDisconnect() {
-      console.log("GASD");
       setIsConnected(false);
       localStorage.setItem("isConnected", "false");
     },
@@ -106,7 +104,6 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
     const handleConnect = (event: StorageEvent) => {
       if (event.key === "isConnected") {
         console.log("isConnected event");
-        setIsConnected(event.newValue === "true");
         window.location.reload();
       }
     };

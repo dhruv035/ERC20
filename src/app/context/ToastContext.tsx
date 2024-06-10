@@ -4,7 +4,7 @@ import Toast, {
   ToastData,
   ToastTypes,
 } from "../components/BaseComponents/Toast";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation } from "framer-motion";
 
 export {type ToastData, ToastTypes} from "../components/BaseComponents/Toast"
 export type ToastContextType = {
@@ -51,6 +51,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
   };
 
   return (
+   
     <ToastContext.Provider value={{ open, close }}>
       {children}
       <div className="flex flex-col space-y-2 max-w-[90%]  absolute top-20 z-[10] right-4 pl-10 overflow-hidden">

@@ -128,12 +128,11 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
       if (event.key === "pendingTx") {
         if (pendingState) console.log("PendingStateEvent");
         if (
-          event.newValue!=="" &&
+          event.newValue !== "" &&
           (event.newValue as `0x${string}`) !==
-          pendingStateRef.current?.pendingTx
-        )
-         {
-           setPendingState((prevState) => ({
+            pendingStateRef.current?.pendingTx
+        ) {
+          setPendingState((prevState) => ({
             ...prevState,
             pendingTx: event.newValue as `0x${string}`,
           }));
@@ -141,10 +140,13 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
           openToast(
             {
               title: "Transaction Detected",
-              type: ToastTypes.SUCCESS,
-              message: `New transaction added to the watcher. Hash is ${event.newValue}`,
-              urlText:"View in Explorer",
-              url:`https://etherscan.com/tx/${event.newValue}`
+              type:
+                event.oldValue !== "" ? ToastTypes.ALERT : ToastTypes.SUCCESS,
+              message: `New ${
+                event.oldValue !== "" ? "replace" : ""
+              } transaction added to the watcher. Hash is ${event.newValue}`,
+              urlText: "View in Explorer",
+              url: `https://etherscan.com/tx/${event.newValue}`,
             },
             6000
           );

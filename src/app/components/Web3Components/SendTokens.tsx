@@ -3,9 +3,13 @@ import TokenInput from "./Tokens/TokenInput";
 import Input from "../BaseComponents/Input";
 import GasStation from "./GasStation";
 import { FormData, TokenData } from "../../page";
-import { useChainContext, useTransactionContext } from "@/app/context/RootContext";
+import {
+  useChainContext,
+  useTransactionContext,
+} from "@/app/context/RootContext";
 import useERC20 from "@/app/actions/erc20Hooks";
 import Spinner from "../BaseComponents/Spinner";
+import Tooltip from "../BaseComponents/Tooltip";
 
 const SendTokens = ({
   tokens,
@@ -14,7 +18,6 @@ const SendTokens = ({
   tokens: TokenData[] | undefined;
   setTokens: Dispatch<SetStateAction<TokenData[] | undefined>>;
 }) => {
-
   const [formData, setFormData] = useState<FormData>({
     selectedToken: undefined,
     toAddress: "",
@@ -23,10 +26,22 @@ const SendTokens = ({
   const [localDisable, setLocalDisable] = useState<boolean>(false);
   const { pendingState } = useTransactionContext();
 
-  const {address} = useChainContext()
-  
+  const { address } = useChainContext();
+
   const { sendTokens } = useERC20();
 
+  useEffect(() => {
+    const handleLocalDisable = (event: StorageEvent) => {
+      if (event.key === "localDisable") {
+        setLocalDisable(event.newValue === "true");
+      }
+    };
+
+    addEventListener("storage", handleLocalDisable);
+    return () => {
+      removeEventListener("storage", handleLocalDisable);
+    };
+  }, []);
 
   const tokensRef = useRef<TokenData[]>();
   tokensRef.current = tokens;
@@ -46,19 +61,22 @@ const SendTokens = ({
     setFormData((prevState) => ({ ...prevState, amount: "" }));
   }, [formData.selectedToken?.address]);
 
+  useEffect(() => {
+    setFormData((prevState) => ({
+      ...prevState,
+      amount: "",
+      selectedToken: undefined,
+    }));
+  }, [address]);
 
-  useEffect(()=>{
-    setFormData((prevState) => ({ ...prevState, amount:"", selectedToken: undefined }));
-    
-  },[address])
-
-  useEffect(()=>{
-    if(formData.selectedToken?.address)
-      {
-        const find = tokens?.find(token=>token.address===formData.selectedToken?.address)
-        setFormData(prevState=>({...prevState,selectedToken:find}))
-      }
-  },[formData.selectedToken?.address, tokens])
+  useEffect(() => {
+    if (formData.selectedToken?.address) {
+      const find = tokens?.find(
+        (token) => token.address === formData.selectedToken?.address
+      );
+      setFormData((prevState) => ({ ...prevState, selectedToken: find }));
+    }
+  }, [formData.selectedToken?.address, tokens]);
 
   return (
     <div>
@@ -121,6 +139,7 @@ const SendTokens = ({
             onClick={async () => {
               if (!formData.selectedToken) return;
               setLocalDisable(true);
+              localStorage.setItem("localDisable", "true");
               try {
                 await sendTokens(
                   formData.selectedToken,
@@ -135,32 +154,30 @@ const SendTokens = ({
               } catch (error) {
               } finally {
                 setLocalDisable(false);
+                localStorage.setItem("localDisable", "false");
               }
             }}
-            className="group rounded-full mt-2 self-center  "
+            className="group/tooltip rounded-full mt-2 self-center  "
           >
             <div className="bg-background flex justify-center shadow-fuller text-text shadow-shadow nohover:shadow-accent nohover:text-accent hover:shadow-accent  hover:text-accent min-w-[100px] rounded-full p-2">
-              {(pendingState.isTxDisabled || localDisable) ? (
+              {pendingState.isTxDisabled || localDisable ? (
                 <Spinner />
               ) : (
                 "Send Token"
               )}
             </div>
             {
-              //Tooltip
-              <div
-                className={`absolute hidden group-hover:group-disabled:flex p-4 z-[1] -translate-y-28 ${
-                  (pendingState.isTxDisabled || localDisable) ? "hidden" : ""
-                }`}
-              >
-                <div className="relative w-full rounded-2xl text-text-base flex bg-accent p-2 md:p-4">
-                  {localDisable
+              
+              <Tooltip
+                isHidden={pendingState.isTxDisabled || localDisable}
+                text={
+                  localDisable
                     ? "Sending Transaction"
                     : pendingState.isTxDisabled
                     ? "Network busy"
-                    : "Select a token first"}
-                </div>
-              </div>
+                    : "Select a token first"
+                }
+              />
             }
           </button>
         </div>
