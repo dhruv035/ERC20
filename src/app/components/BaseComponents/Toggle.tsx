@@ -19,7 +19,6 @@ const Toggle = ({
     <div className={`group/toggle select-none rounded-full p-[1px] mr-2 text-text shadow-fuller hover:cursor-pointer shadow-gray-600 hover:text-base-green hover:bg-base-green nohover:hover:text-gray-600 nohover:hover:bg-navbar`}>
       <div
         onClick={(e) => {
-          e.preventDefault();
           toggle();
         }}
         className={`py-[0.2px] h-min flex flex-row${

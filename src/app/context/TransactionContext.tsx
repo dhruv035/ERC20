@@ -15,7 +15,6 @@ import { ToastTypes } from "./ToastContext";
 import { shortenHash } from "../actions/utils";
 import { useAlchemyContext, useChainContext, useToast } from "./RootContext";
 
-
 /*This is the bridge for any transactions to go through, it's disabled by isTxDisabled if there is data loading or if 
   there's a pending transaction. The data loading is enforced to ensure no transaction is done without latest data.
   Add pendingStates from any critical data here and add it in the subsequent hooks
@@ -43,7 +42,6 @@ export type Deployment = {
   j1: string;
   j2?: string;
 };
-
 export const TransactionContext = createContext<TransactionContextType>(
   {} as TransactionContextType
 );
@@ -72,7 +70,6 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   } = useWaitForTransactionReceipt({
     hash: pendingState.pendingTx as `0x${string}`,
   });
-
   //Update UI on transaction state changes
 
   const handleSuccess = useCallback(() => {
@@ -122,6 +119,18 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [status, handleSuccess, handleError]);
 
+  useEffect(() => {
+    const handleStorage = () => {
+      setPendingState((prevState) => ({
+        ...prevState,
+        pendingTx: localStorage.getItem("pendingTx") as `0x${string}`,
+      }));
+    };
+    addEventListener("storage", handleStorage);
+    return ()=>{
+      removeEventListener("storage",handleStorage);
+    }
+  }, []);
   //Update PendingState when pendingTx hash changes
   useEffect(() => {
     if (pendingState.pendingTx) {
@@ -156,7 +165,6 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   }, [
     pendingState.pendingTx,
     getAlchemyTransaction,
-    pendingTxLocal,
     isFetchingAlchemy,
     isFetchingTransaction,
     isFetchingChain,

@@ -12,10 +12,14 @@ import {
   useAccount,
   useAccountEffect,
   useBlockNumber,
+  useConfig,
+  useConnect,
+  useConnectorClient,
   useEstimateFeesPerGas,
   useGasPrice,
 } from "wagmi";
 import { Chain } from "viem";
+import { connect } from "wagmi/actions";
 
 //Global contexts may be persisted and managed here
 
@@ -66,9 +70,9 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
       refetchInterval: 1_000,
     },
   });
-
   const [isFetching, setIsFetching] = useState<boolean>(false);
 
+  const config = useConfig();
   const { data: gasPrice, isFetching: isFetchingPrice } = useGasPrice({
     query: {
       staleTime: 1_000,
@@ -84,22 +88,36 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
         refetchInterval: 1_000,
       },
     });
-  const [isConnected, setIsConnected] = useState<boolean>(() => {
-    if (typeof localStorage !== "undefined") {
-      return localStorage.getItem("isConnected") === "true";
-    } else return false;
-  });
+  const [isConnected, setIsConnected] = useState<boolean>(false);
   useAccountEffect({
     onConnect() {
+      console.log("ASD");
       setIsConnected(true);
       localStorage.setItem("isConnected", "true");
     },
     onDisconnect() {
+      console.log("GASD");
       setIsConnected(false);
       localStorage.setItem("isConnected", "false");
     },
   });
 
+  useEffect(() => {
+    const handleConnect = () => {
+      console.log("CONNECT", localStorage.getItem("isConnected"));
+      if (localStorage.getItem("isConnected") === "true") {
+        setIsConnected(true);
+        window.location.reload();
+      } else setIsConnected(false);
+      window.location.reload();
+    };
+    addEventListener("storage", (event) => {
+      handleConnect();
+    });
+    return () => {
+      removeEventListener("storage", handleConnect);
+    };
+  }, []);
   //Block Countdown
 
   useEffect(() => {

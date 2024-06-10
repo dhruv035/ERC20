@@ -48,6 +48,7 @@ const config: Config = {
         accent: "var(--accent)",
         shadow: "var(--shadow)",
         "base-green": "var(--base-green)",
+        "accent-base":"var(--accent-base)",
         "text-base": "var(--text-base)",
       },
       backgroundImage: {

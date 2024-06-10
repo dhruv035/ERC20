@@ -21,6 +21,7 @@ const SendTokens = ({
   const [localDisable, setLocalDisable] = useState<boolean>(false);
   const { pendingState } = useTransactionContext();
   const { sendTokens } = useERC20();
+  
 
   const tokensRef = useRef<TokenData[]>();
   tokensRef.current = tokens;
@@ -35,6 +36,7 @@ const SendTokens = ({
       };
     });
   };
+  console.log("CGECK",pendingState.isTxDisabled, localDisable)
 
   return (
     <div>

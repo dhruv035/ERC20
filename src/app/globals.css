@@ -37,6 +37,9 @@ dark/light theme colors, add light color in root class and dark version in .dark
 */
 @layer base {
   :root {
+    
+    --accent-base:rgb(0, 125, 7);
+    --accent:var(--accent-base);
     --base-green:rgb(156, 236, 6);
     --bg: white;
     --text:black;
@@ -44,7 +47,7 @@ dark/light theme colors, add light color in root class and dark version in .dark
     --slider: rgb(209, 208, 208);
     --navbar: rgb(6, 5, 19);
     --modal: rgb(238, 238, 238);
-    --accent:rgb(0, 125, 7);
+    
     --shadow:rgb(201, 201, 201);
     & :disabled {
       --text:rgb(168, 168, 168);
@@ -54,13 +57,14 @@ dark/light theme colors, add light color in root class and dark version in .dark
   }
 
   .dark {
+    --accent-base:rgb(156, 236, 6);
     --bg: black;
     --text: white;
     --text-base:white;
     --slider: white;
     --navbar: rgb(3, 2, 17);
     --modal: rgb(1, 1, 21);
-    --accent:var(--base-green);
+    --accent:var(--accent-base);
     --shadow:rgb(75,85,99);
     & :disabled {
       --text:rgb(75,85,99);

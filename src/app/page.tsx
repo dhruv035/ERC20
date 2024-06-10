@@ -40,28 +40,43 @@ const Home = () => {
   const { getAllBalances } = useAlchemyContext();
 
   useEffect(() => {
+    console.log("UPDATE")
     setFormData((prevState) => ({ ...prevState, amount: "" }));
-  }, [formData.selectedToken]);
+  }, [formData.selectedToken?.address]);
 
   useEffect(() => {
-    setFormData((prevState) => ({ ...prevState, amount:"", selectedToken: undefined }));
-    setTokens([]);
+    
     if (!address) {
       setIsSendTab(false);
       return;
     }
     //Fetch token balances for all ERC20 tokens in wallet
-    getAllBalances(address).then((data) => {
+    getAllBalances().then((data) => {
       setTokens(data);
     });
-  }, [address, chain?.id, getAllBalances]);
+  }, [address, getAllBalances]);
 
+
+  useEffect(()=>{
+    setFormData((prevState) => ({ ...prevState, amount:"", selectedToken: undefined }));
+    
+  },[address])
+
+  useEffect(()=>{
+    console.log("TRIGGERED")
+    if(formData.selectedToken?.address)
+      {
+        const find = tokens?.find(token=>token.address===formData.selectedToken?.address)
+        setFormData(prevState=>({...prevState,selectedToken:find}))
+      }
+  },[formData.selectedToken?.address, tokens])
   useEffect(()=>{
     if(!blockNumber)
       return;
     if(!address)
       return
-    getAllBalances(address).then((data) => {
+    getAllBalances().then((data) => {
+
       setTokens(data);
     });
   },[blockNumber,address])

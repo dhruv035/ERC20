@@ -3,12 +3,12 @@ import { Honk } from "next/font/google";
 import "./globals.css";
 import { ContextProvider } from "./context/RootContext";
 import Navbar from "./components/LayoutComponents/Navbar";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const honk = Honk({
   subsets: ["latin-ext"],
-  weight:"400",
-  style:"normal",
+  weight: "400",
+  style: "normal",
   variable: "--font-honk",
 });
 
@@ -19,8 +19,27 @@ export default function RootLayout({
 }>) {
   const [isDark, setIsDark] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState(false);
+
+  const darkModeLocal = useMemo(()=>{
+    console.log("HI")
+    if (typeof window!=="undefined")
+      return localStorage.getItem("mode")
+    else return;
+  },[typeof window])
+
+ useEffect(()=>{
+
+  const handleStorage = ()=>{
+    console.log("HI")
+    setIsDark(localStorage.getItem("mode")==="dark"?true:false)
+  }
+  addEventListener("storage", ()=>{handleStorage()});
+  return removeEventListener("storage",handleStorage);
+ },[])
+  const dmRef = useRef<string|null>();
+  dmRef.current = darkModeLocal
+  console.log("DARM",dmRef.current)
   useEffect(() => {
-    
     //detect browser preferred scheme
     let media = window.matchMedia("(prefers-color-scheme: dark)");
     if (typeof window !== undefined) {
@@ -39,6 +58,9 @@ export default function RootLayout({
     };
   }, []);
 
+  useEffect(() => {
+    darkModeLocal && setIsDark(darkModeLocal === "dark" ? true : false);
+  }, [darkModeLocal]);
   return (
     <html lang="en" className={`${honk.variable} ${isDark ? "dark" : ""}`}>
       <head>
@@ -46,7 +68,7 @@ export default function RootLayout({
       </head>
       <meta name="description" content="Send ERC 20 Tokens" />
       <body>
-        {isMounted&&(
+        {isMounted && (
           <ContextProvider isDark={isDark}>
             <Navbar
               isDark={isDark}
