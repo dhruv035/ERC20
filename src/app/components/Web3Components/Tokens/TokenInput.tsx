@@ -10,6 +10,8 @@ import Input from "../../BaseComponents/Input";
 import TokenSearchModal from "./TokenSearchModal";
 import { useToast } from "@/app/context/RootContext";
 import { ToastTypes } from "../../BaseComponents/Toast";
+import { countDecimals } from "@/app/actions/utils";
+
 
 const TokenInput = ({
   tokens,
@@ -56,6 +58,11 @@ const TokenInput = ({
                   disabled={selectedToken ? false : true}
                   value={amount}
                   onChange={(e) => {
+                    if(!selectedToken)
+                      return;
+
+                    const decimals = countDecimals(e.target.value);
+                    console.log("decimals",decimals,selectedToken.metaData.decimals)
                     if(Number(e.target.value)<0)
                       {
                         openToast(
@@ -67,6 +74,17 @@ const TokenInput = ({
                           6000
                         );
                         setAmount("0");
+                      }
+                      else if(selectedToken.metaData.decimals<decimals){
+                        openToast(
+                          {
+                            title: "Decimal point exceeded",
+                            type: ToastTypes.ERROR,
+                            message: `Token supports only ${selectedToken.metaData.decimals} decimals`,
+                          },
+                          6000
+                        );
+                        return 
                       }
                     else if (
                       selectedToken?.balance &&

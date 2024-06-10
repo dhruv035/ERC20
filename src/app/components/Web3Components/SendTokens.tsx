@@ -3,25 +3,30 @@ import TokenInput from "./Tokens/TokenInput";
 import Input from "../BaseComponents/Input";
 import GasStation from "./GasStation";
 import { FormData, TokenData } from "../../page";
-import { useTransactionContext } from "@/app/context/RootContext";
+import { useChainContext, useTransactionContext } from "@/app/context/RootContext";
 import useERC20 from "@/app/actions/erc20Hooks";
 import Spinner from "../BaseComponents/Spinner";
 
 const SendTokens = ({
   tokens,
-  formData,
-  setFormData,
   setTokens,
 }: {
   tokens: TokenData[] | undefined;
-  formData: FormData;
-  setFormData: Dispatch<SetStateAction<FormData>>;
   setTokens: Dispatch<SetStateAction<TokenData[] | undefined>>;
 }) => {
+
+  const [formData, setFormData] = useState<FormData>({
+    selectedToken: undefined,
+    toAddress: "",
+    amount: "",
+  });
   const [localDisable, setLocalDisable] = useState<boolean>(false);
   const { pendingState } = useTransactionContext();
-  const { sendTokens } = useERC20();
+
+  const {address} = useChainContext()
   
+  const { sendTokens } = useERC20();
+
 
   const tokensRef = useRef<TokenData[]>();
   tokensRef.current = tokens;
@@ -36,7 +41,24 @@ const SendTokens = ({
       };
     });
   };
-  console.log("CGECK",pendingState.isTxDisabled, localDisable)
+
+  useEffect(() => {
+    setFormData((prevState) => ({ ...prevState, amount: "" }));
+  }, [formData.selectedToken?.address]);
+
+
+  useEffect(()=>{
+    setFormData((prevState) => ({ ...prevState, amount:"", selectedToken: undefined }));
+    
+  },[address])
+
+  useEffect(()=>{
+    if(formData.selectedToken?.address)
+      {
+        const find = tokens?.find(token=>token.address===formData.selectedToken?.address)
+        setFormData(prevState=>({...prevState,selectedToken:find}))
+      }
+  },[formData.selectedToken?.address, tokens])
 
   return (
     <div>

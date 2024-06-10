@@ -20,25 +20,29 @@ export default function RootLayout({
   const [isDark, setIsDark] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  const darkModeLocal = useMemo(()=>{
-    console.log("HI")
-    if (typeof window!=="undefined")
-      return localStorage.getItem("mode")
+  const darkRef = useRef<boolean>();
+  darkRef.current = isDark;
+  const darkModeLocal = useMemo(() => {
+    console.log("HI");
+    if (typeof window !== "undefined") return localStorage.getItem("mode");
     else return;
-  },[typeof window])
+  }, [typeof window]);
 
- useEffect(()=>{
-
-  const handleStorage = ()=>{
-    console.log("HI")
-    setIsDark(localStorage.getItem("mode")==="dark"?true:false)
-  }
-  addEventListener("storage", ()=>{handleStorage()});
-  return removeEventListener("storage",handleStorage);
- },[])
-  const dmRef = useRef<string|null>();
-  dmRef.current = darkModeLocal
-  console.log("DARM",dmRef.current)
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === "mode") {
+        console.log("MODE EVENT");
+        setIsDark(localStorage.getItem("mode") === "dark" ? true : false);
+      }
+    };
+    addEventListener("storage", (event) => {
+      handleStorage(event);
+    });
+    return removeEventListener("storage", handleStorage);
+  }, []);
+  const dmRef = useRef<string | null>();
+  dmRef.current = darkModeLocal;
+  console.log("DARM", dmRef.current);
   useEffect(() => {
     //detect browser preferred scheme
     let media = window.matchMedia("(prefers-color-scheme: dark)");

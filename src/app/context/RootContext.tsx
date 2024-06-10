@@ -56,20 +56,21 @@ export function ContextProvider({
   const queryClient = new QueryClient();
 
   return (
-    <WagmiProvider config={config} reconnectOnMount={true}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={isDark ? darkTheme() : lightTheme()}>
-          <ToastProvider>
+    <ToastProvider>
+      <WagmiProvider config={config} reconnectOnMount={true}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider theme={isDark ? darkTheme() : lightTheme()}>
             <TimerProvider>
               <ChainProvider>
                 <AlchemyProvider>
-                <TransactionProvider>{children}</TransactionProvider></AlchemyProvider>
+                  <TransactionProvider>{children}</TransactionProvider>
+                </AlchemyProvider>
               </ChainProvider>
             </TimerProvider>
-          </ToastProvider>
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </ToastProvider>
   );
 }
 

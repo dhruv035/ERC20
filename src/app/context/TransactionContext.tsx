@@ -56,7 +56,11 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   const { getTransaction: getAlchemyTransaction, isFetchingAlchemy } =
     useAlchemyContext();
   const blockRef = useRef<bigint>();
+  const pendingStateRef = useRef<PendingState>();
+
+  pendingStateRef.current = pendingState;
   blockRef.current = blockNumber;
+
   const pendingTxLocal =
     (typeof localStorage !== "undefined" &&
       localStorage.getItem("pendingTx")) ??
@@ -120,16 +124,39 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   }, [status, handleSuccess, handleError]);
 
   useEffect(() => {
-    const handleStorage = () => {
-      setPendingState((prevState) => ({
-        ...prevState,
-        pendingTx: localStorage.getItem("pendingTx") as `0x${string}`,
-      }));
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === "pendingTx") {
+        if (pendingState) console.log("PendingStateEvent");
+        if (
+          event.newValue!=="" &&
+          (event.newValue as `0x${string}`) !==
+          pendingStateRef.current?.pendingTx
+        )
+         {
+           setPendingState((prevState) => ({
+            ...prevState,
+            pendingTx: event.newValue as `0x${string}`,
+          }));
+
+          openToast(
+            {
+              title: "Transaction Detected",
+              type: ToastTypes.SUCCESS,
+              message: `New transaction added to the watcher. Hash is ${event.newValue}`,
+              urlText:"View in Explorer",
+              url:`https://etherscan.com/tx/${event.newValue}`
+            },
+            6000
+          );
+        }
+      }
     };
-    addEventListener("storage", handleStorage);
-    return ()=>{
-      removeEventListener("storage",handleStorage);
-    }
+    addEventListener("storage", (event) => {
+      handleStorage(event);
+    });
+    return () => {
+      removeEventListener("storage", handleStorage);
+    };
   }, []);
   //Update PendingState when pendingTx hash changes
   useEffect(() => {

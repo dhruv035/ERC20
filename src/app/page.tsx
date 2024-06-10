@@ -39,10 +39,6 @@ const Home = () => {
   
   const { getAllBalances } = useAlchemyContext();
 
-  useEffect(() => {
-    console.log("UPDATE")
-    setFormData((prevState) => ({ ...prevState, amount: "" }));
-  }, [formData.selectedToken?.address]);
 
   useEffect(() => {
     
@@ -56,20 +52,6 @@ const Home = () => {
     });
   }, [address, getAllBalances]);
 
-
-  useEffect(()=>{
-    setFormData((prevState) => ({ ...prevState, amount:"", selectedToken: undefined }));
-    
-  },[address])
-
-  useEffect(()=>{
-    console.log("TRIGGERED")
-    if(formData.selectedToken?.address)
-      {
-        const find = tokens?.find(token=>token.address===formData.selectedToken?.address)
-        setFormData(prevState=>({...prevState,selectedToken:find}))
-      }
-  },[formData.selectedToken?.address, tokens])
   useEffect(()=>{
     if(!blockNumber)
       return;
@@ -124,7 +106,7 @@ const Home = () => {
             <div className="bg-background rounded-t-xl p-2">Chain Data</div>
           </button>
         </div>
-        {isSendTab ? <SendTokens formData={formData} setFormData={setFormData} tokens={tokens} setTokens={setTokens} /> : <Blockchain />}
+        {isSendTab ? <SendTokens tokens={tokens} setTokens={setTokens} /> : <Blockchain />}
       </div>
     </div>
   );

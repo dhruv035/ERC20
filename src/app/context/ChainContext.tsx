@@ -103,16 +103,15 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
   });
 
   useEffect(() => {
-    const handleConnect = () => {
-      console.log("CONNECT", localStorage.getItem("isConnected"));
-      if (localStorage.getItem("isConnected") === "true") {
-        setIsConnected(true);
+    const handleConnect = (event: StorageEvent) => {
+      if (event.key === "isConnected") {
+        console.log("isConnected event");
+        setIsConnected(event.newValue === "true");
         window.location.reload();
-      } else setIsConnected(false);
-      window.location.reload();
+      }
     };
     addEventListener("storage", (event) => {
-      handleConnect();
+      handleConnect(event);
     });
     return () => {
       removeEventListener("storage", handleConnect);
