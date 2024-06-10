@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  min-height: 100vh;
+  color: rgb(var(--foreground-rgb));
+  background: var(--bg);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+:root {
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/*
+dark/light theme colors, add light color in root class and dark version in .dark(overrides root) and then import the variables in the tailwind config
+*/
+@layer base {
+  :root {
+    --base-green:rgb(156, 236, 6);
+    --bg: white;
+    --text:black;
+    --text-base:black;
+    --slider: rgb(209, 208, 208);
+    --navbar: rgb(6, 5, 19);
+    --modal: rgb(238, 238, 238);
+    --accent:rgb(0, 125, 7);
+    --shadow:rgb(201, 201, 201);
+    & :disabled {
+      --text:rgb(168, 168, 168);
+      --accent:rgb(168, 168, 168);
+      --shadow:rgb(168, 168, 168);
+    }
+  }
+
+  .dark {
+    --bg: black;
+    --text: white;
+    --text-base:white;
+    --slider: white;
+    --navbar: rgb(3, 2, 17);
+    --modal: rgb(1, 1, 21);
+    --accent:var(--base-green);
+    --shadow:rgb(75,85,99);
+    & :disabled {
+      --text:rgb(75,85,99);
+      --accent:rgb(75,85,99);
+      --shadow:rgb(75,85,99);
+  }
+  }
+  
+}
