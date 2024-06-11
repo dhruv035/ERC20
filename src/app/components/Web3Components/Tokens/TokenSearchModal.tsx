@@ -19,6 +19,7 @@ import { shortenHash } from "@/app/actions/utils";
 import { LuCopy } from "react-icons/lu";
 import { LuCopyCheck } from "react-icons/lu";
 import Tooltip from "../../BaseComponents/Tooltip";
+import { useAccount, useBlockNumber } from "wagmi";
 
 //I had previously factored this into a seperate Modal component but there is no re usage of Modal
 const TokenSearchModal = ({
@@ -36,17 +37,28 @@ const TokenSearchModal = ({
   const [input, setInput] = useState<string>("");
   const [isCustom, setIsCustom] = useState<boolean>(false);
   const [customToken, setCustomToken] = useState<TokenData | undefined>();
-  const { address, blockNumber } = useChainContext();
+  const { address } = useAccount();
+  const {data:blockNumber} = useBlockNumber({query:{
+    refetchInterval:6_000,
+    staleTime:5_000
+  }});
   const [copiedAddress, setCopiedAddress] = useState<string>("");
 
-  const { getAllTokenData, initializeStates, getTokenData, fetchStates } =
-    useAlchemyHooks();
+  const {
+    getAllTokenData,
+    getTokenDataArray,
+    initializeStates,
+    getTokenData,
+    fetchStates,
+  } = useAlchemyHooks();
   const [importedTokens, setImportedTokens] = useState<TokenData[]>();
+  const [importedTokensArray, setImportedTokensArray] = useState<string[]>();
 
-  console.log("FETCHSTATES", fetchStates);
+  console.log("importedTokensArray",importedTokensArray)
   const filteredTokens = useMemo(() => {
     if (!tokens) return [] as TokenData[];
     if (input === "") return tokens;
+
     const filteredData = tokens.filter((token) => {
       return (
         token.metaData.name?.toLowerCase().startsWith(input.toLowerCase()) ||
@@ -56,21 +68,32 @@ const TokenSearchModal = ({
     return filteredData;
   }, [input, tokens]);
 
+  //Local index is kept as the string and parsed when passed to the state in sideEffect
+
+  const importedTokensLocal = useMemo<string[]>(() => {
+    console.log("123:IMPORTED");
+    if (typeof window === "undefined") {
+      return [];
+    } else {
+      const data = localStorage.getItem("tokensBook");
+      if (data && data !== "") return JSON.parse(data);
+    }
+  }, [window]);
   //Reset Search Text
   useEffect(() => {
     setInput("");
   }, [isOpen]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const tokensBookString = localStorage.getItem("tokensBook");
-      if (!tokensBookString) return;
-      const tokensBookArray = JSON.parse(tokensBookString);
-      console.log("123:ARRAY", tokensBookArray);
-      setImportedTokens(tokensBookArray);
+    if (importedTokensArray) {
+      getTokenDataArray(importedTokensArray).then((data) =>
+        setImportedTokens(data)
+      );
+      //Fetch data for imported tokens, alchemy hook getTokensArray
+    } else if (importedTokensLocal && importedTokensLocal.length > 0) {
+      setImportedTokensArray(importedTokensLocal);
     }
-  }, []);
-  console.log("123:IMPORTED", importedTokens);
+  }, [importedTokensArray, importedTokensLocal]);
 
   useEffect(() => {
     if (!address) return;
@@ -91,35 +114,39 @@ const TokenSearchModal = ({
   const handleImport = useCallback(async () => {
     if (!customToken) return;
     addToken(input);
-    setImportedTokens((prevState) => {
-      const data = prevState ? [...prevState] : [];
-      return [...data, customToken];
+    setImportedTokensArray((prevState) => {
+      const arr = !prevState?[input]:[...prevState,input];
+      localStorage.setItem("tokensBook",JSON.stringify(arr));
+      return arr;
     });
   }, [input, customToken]);
 
   const isValid = useMemo<boolean>(() => {
+    if (!isCustom) return false;
     return isAddress(input);
-  }, [input]);
+  }, [input, isCustom]);
   useEffect(() => {
+    if (!isCustom) return;
     if (!isValid) {
       setCustomToken(undefined);
       return;
     }
     getTokenData(input).then((tokenData) => {
-      setCustomToken(tokenData);
+      if (tokenData) setCustomToken(tokenData);
     });
-  }, [isValid]);
+  }, [isValid, isCustom]);
 
   const handleStorageUpdate = useCallback((event: StorageEvent) => {
     if (event.key === "tokensBook") {
       if (!event.newValue) {
-        setImportedTokens([]);
+        setImportedTokensArray([]);
         return;
       }
-      const importedTokens = JSON.parse(event.newValue);
-      setImportedTokens(importedTokens);
+      const importedTokens: Array<string> = JSON.parse(event.newValue);
+      setImportedTokensArray(importedTokens);
     }
   }, []);
+  console.log("FILTERED TOKENS", filteredTokens);
   useEffect(() => {
     addEventListener("storage", handleStorageUpdate);
     return () => {
@@ -205,13 +232,14 @@ const TokenSearchModal = ({
             onChange={(e) => setInput(e.target.value)}
           />
 
-          {!initializeStates.metaData ? (
+          {!initializeStates.allTokenData ? (
             <Spinner />
           ) : (
             <ul className=" flex bg-transparent h-fit max-h-[200px] w-full rounded-2xl justify-center overflow-scroll no-scrollbar border-white border-[1px]">
               <div className="flex flex-col rounded-2xl w-full max-w-96">
                 {importedTokens &&
                   importedTokens.map((token: TokenData, index: number) => {
+                    console.log("ATOKEN",index,token)
                     return (
                       <li
                         className="flex first:rounded-t-2xl flex-row p-2 items-center bg-transparent hover:bg-background hover:cursor-pointer last:rounded-b-2xl"
@@ -235,9 +263,14 @@ const TokenSearchModal = ({
                           height={30}
                         ></Image>
                         <div className="flex flex-col w-full">
-                          <p className="whitespace-nowrap">
-                            {token.metaData?.name}
-                          </p>
+                          <div className="flex flex-row">
+                            <p className="whitespace-nowrap">
+                              {token.metaData?.name}
+                            </p>
+                            <div className="w-full flex flex-row-reverse">
+                              Imported
+                            </div>
+                          </div>
                           <div className="group/tooltip flex flex-row items-center text-sm font-600">
                             Address:{" "}
                             <p className="text-accent mr-4">
@@ -296,6 +329,7 @@ const TokenSearchModal = ({
                     );
                   })}
                 {filteredTokens.map((token: TokenData, index: number) => {
+                   console.log("ATOKEN",index,token)
                   return (
                     <li
                       className="flex first:rounded-t-2xl flex-row p-2 items-center bg-transparent hover:bg-background hover:cursor-pointer last:rounded-b-2xl"

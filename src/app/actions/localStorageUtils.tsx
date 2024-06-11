@@ -14,8 +14,15 @@ export const removeToken = (index: number) => {
   if (!tokensArray) return;
 
   const parsed: Array<string> = JSON.parse(tokensArray);
-  parsed.splice(index, 1);
-  localStorage.setItem("tokensBook", JSON.stringify(parsed));
+  if(!parsed.length){
+    throw Error("Array empty");
+  }
+  else if(parsed.length===1) {
+    localStorage.removeItem("tokensBook");
+  }
+  else{
+    parsed.splice(index, 1);
+  localStorage.setItem("tokensBook", JSON.stringify(parsed));}
 };
 
 
@@ -39,3 +46,16 @@ export const removeAddress = (index: number) => {
   parsed.splice(index, 1);
   localStorage.setItem("tokensArray", JSON.stringify(parsed));
 };
+
+export const unsetAddressBook = () => {
+  localStorage.removeItem("tokensArray");
+}
+
+
+export const setPendingHash = (hash:string) =>{
+localStorage.setItem("pendingTx",hash);
+}
+
+export const unsetPendingHash = () =>{
+localStorage.removeItem("pendingTx");
+}

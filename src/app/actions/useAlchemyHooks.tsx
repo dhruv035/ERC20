@@ -16,6 +16,7 @@ import {
 import { MetaData, TokenData } from "../page";
 import { formatUnits, hexToBigInt } from "viem";
 import { useChainContext } from "../context/RootContext";
+import { useAccount, useChainId } from "wagmi";
 
 //Global contexts may be persisted and managed here
 
@@ -45,7 +46,7 @@ export const AlchemyContext = createContext<AlchemyContextType>(
 );
 
 const useAlchemyHooks = () => {
-  const { address, chain } = useChainContext();
+  const {address, chain} = useAccount();
 
   const [fetchStates, setFetchStates] = useState<FetchStates>({
     metaData: false,
@@ -111,12 +112,11 @@ const useAlchemyHooks = () => {
     },
     [alchemy]
   );
-
   const resetInitializeStates = () => {
     setInitializeStates({
       metaData: false,
       tokenData: false,
-      tokenDataArray:false,
+      tokenDataArray: false,
       allTokenData: false,
       transaction: false,
     });
@@ -131,48 +131,40 @@ const useAlchemyHooks = () => {
       if (fetchRef.current?.tokenData === true) {
         return;
       }
-      
-
       setFetchState("tokenDataArray", true);
       const res = await alchemy.core.getTokenBalances(
         address as string,
         tokenAddresses
       );
 
-      const response = res.tokenBalances[0];
-
-      const metaDatas = await Promise.all(
-        tokenAddresses.map((token) => {
-          return getMetaData(token);
+      const tokensData: Array<TokenData> = await Promise.all(
+        res.tokenBalances.map(async (token) => {
+          const metaData = await alchemy.core.getTokenMetadata(token.contractAddress);
+          const balance = formatUnits(
+            hexToBigInt(token.tokenBalance as `0x${string}`),
+            metaData.decimals ?? 9
+          );
+          return {
+            metaData,
+            address: token.contractAddress,
+            balance,
+          } as TokenData;
         })
       );
-      
-      const tokensData:Array<TokenData> = await Promise.all(res.tokenBalances.map(async(token)=>{
-        const metaData = await getMetaData(token.contractAddress);
-        const balance = formatUnits(
-          hexToBigInt(token.tokenBalance as `0x${string}`),
-          metaData.decimals ?? 9
-        );
-        return {
-          metaData,
-          address:token.contractAddress,
-          balance
-        } as TokenData
-      }))
       setFetchState("tokenDataArray", false);
       if (initializeRef.current?.tokenData === false) {
         setInitializeState("tokenDataArray", true);
       }
       return tokensData;
     },
-    [alchemy, address, getMetaData]
+    [alchemy, address]
   );
   const getTokenData = useCallback(
     async (tokenAddress: string) => {
       if (fetchRef.current?.tokenData === true) {
         return;
       }
-      const metaData = await getMetaData(tokenAddress);
+      const metaData = await alchemy.core.getTokenMetadata(tokenAddress);
 
       setFetchState("tokenData", true);
       const addresses = [tokenAddress];
@@ -198,11 +190,8 @@ const useAlchemyHooks = () => {
       }
       return tokenData;
     },
-    [alchemy, address, getMetaData]
+    [alchemy, address]
   );
-
-  const fetchingRef = useRef<boolean>();
-  fetchingRef.current = isFetching;
 
   const getAllTokenData = useCallback(async () => {
     if (fetchRef.current?.allTokenData === true) {
@@ -211,6 +200,7 @@ const useAlchemyHooks = () => {
     setFetchState("allTokenData", true);
     //This function returns non 0 balances for all the tokens, can be edited to show zero balance tokens as well based on all tokens you have ever interacted with
     const data = await alchemy.core.getTokenBalances(address as `0x${string}`);
+    console.log("DATA123", data);
     const formatted = await Promise.all(
       data.tokenBalances
         .filter(
@@ -219,7 +209,7 @@ const useAlchemyHooks = () => {
             hexToBigInt(token.tokenBalance as `0x${string}`) > 0
         )
         .map(async (token) => {
-          const metaData = await getMetaData(token.contractAddress);
+          const metaData = await alchemy.core.getTokenMetadata(token.contractAddress);
           const balance = formatUnits(
             hexToBigInt(token.tokenBalance as `0x${string}`),
             metaData.decimals ?? 6
@@ -237,7 +227,7 @@ const useAlchemyHooks = () => {
       setInitializeState("allTokenData", true);
     }
     return formatted;
-  }, [alchemy, getMetaData, address]);
+  }, [alchemy, address]);
 
   const getTransaction = useCallback(
     async (hash: string) => {
@@ -263,6 +253,7 @@ const useAlchemyHooks = () => {
     initializeStates,
     getMetaData,
     getTokenData,
+    getTokenDataArray,
     getAllTokenData,
     getTransaction,
     resetInitializeStates,
