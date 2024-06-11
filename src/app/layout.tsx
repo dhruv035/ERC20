@@ -23,9 +23,7 @@ export default function RootLayout({
   const darkRef = useRef<boolean>();
   darkRef.current = isDark;
   const darkModeLocal =
-    typeof window !== "undefined"
-      ? localStorage.getItem("mode")
-      : undefined;
+    typeof window !== "undefined" ? localStorage.getItem("mode") : undefined;
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
@@ -34,30 +32,30 @@ export default function RootLayout({
         setIsDark(localStorage.getItem("mode") === "dark" ? true : false);
       }
     };
-    addEventListener("storage", (event) => {
-      handleStorage(event);
-    });
-    return removeEventListener("storage", handleStorage);
+    addEventListener("storage", handleStorage);
+    return () => {
+      removeEventListener("storage", handleStorage);
+    };
   }, []);
   const dmRef = useRef<string | null>();
   dmRef.current = darkModeLocal;
-  console.log("DARM", dmRef.current);
   useEffect(() => {
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setIsDark(true);
+      else setIsDark(false);
+    };
     //detect browser preferred scheme
     let media = window.matchMedia("(prefers-color-scheme: dark)");
     if (typeof window !== undefined) {
       if (localStorage.getItem("mode") === "dark") setIsDark(true);
       else if (!localStorage.getItem("mode")) {
         // this logic will be used later to create a bigger user menu, where you can set it to auto detect, not implemented but functionally works
-        media.addEventListener("change", (e) => {
-          if (e.matches) setIsDark(true);
-          else setIsDark(false);
-        });
+        media.addEventListener("change", handleChange);
       }
     }
     setIsMounted(true);
     return () => {
-      media.removeEventListener("change", (e) => {});
+      media.removeEventListener("change", handleChange);
     };
   }, []);
 

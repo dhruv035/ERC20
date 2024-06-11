@@ -1,4 +1,4 @@
-import { ReactNode, createContext } from "react";
+import { ReactNode, createContext, useRef } from "react";
 import { useState } from "react";
 import Toast, {
   ToastData,
@@ -6,7 +6,7 @@ import Toast, {
 } from "../components/BaseComponents/Toast";
 import { AnimatePresence } from "framer-motion";
 
-export {type ToastData, ToastTypes} from "../components/BaseComponents/Toast"
+export { type ToastData, ToastTypes } from "../components/BaseComponents/Toast";
 export type ToastContextType = {
   open: (
     data: {
@@ -21,7 +21,9 @@ export type ToastContextType = {
   close: (id: number) => void;
 };
 
-export const ToastContext = createContext<ToastContextType>({} as ToastContextType);
+export const ToastContext = createContext<ToastContextType>(
+  {} as ToastContextType
+);
 
 //Custom Toast Implementation for the UI
 export default function ToastProvider({ children }: { children: ReactNode }) {
@@ -43,8 +45,20 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
 
     setTimeout(() => close(id), timeout);
   };
+  const openRef = useRef<
+    (
+      data: {
+        title: string;
+        type: ToastTypes;
+        message: string;
+        url?: string;
+        urlText?: string;
+      },
+      timeout: number
+    ) => void
+  >();
+  openRef.current = open;
 
-  
   const close = (id: number) => {
     setToasts((toasts: any) =>
       toasts.filter((toast: ToastData) => toast.id !== id)
@@ -52,8 +66,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-   
-    <ToastContext.Provider value={{ open, close }}>
+    <ToastContext.Provider value={{ open:openRef.current, close }}>
       {children}
       <div className="flex flex-col space-y-2 max-w-[90%]  absolute top-20 z-[10] right-4 pl-10 overflow-hidden">
         <AnimatePresence>
@@ -65,4 +78,3 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
     </ToastContext.Provider>
   );
 }
-

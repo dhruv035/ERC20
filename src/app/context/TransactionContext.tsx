@@ -13,7 +13,8 @@ import {
 import { useWaitForTransactionReceipt } from "wagmi";
 import { ToastTypes } from "./ToastContext";
 import { shortenHash } from "../actions/utils";
-import { useAlchemyContext, useChainContext, useToast } from "./RootContext";
+import { useChainContext, useToast } from "./RootContext";
+import useAlchemyHooks from "../actions/useAlchemyHooks";
 
 /*This is the bridge for any transactions to go through, it's disabled by isTxDisabled if there is data loading or if 
   there's a pending transaction. The data loading is enforced to ensure no transaction is done without latest data.
@@ -67,7 +68,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   const { blockNumber, chain, isFetchingChain } = useChainContext();
 
   const { getTransaction: getAlchemyTransaction, isFetchingAlchemy } =
-    useAlchemyContext();
+    useAlchemyHooks();
 
   const blockRef = useRef<bigint>();
   const pendingStateRef = useRef<PendingState>();
@@ -153,26 +154,25 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
             ...prevState,
             pendingTx: event.newValue as `0x${string}`,
           }));
-          
-          openRef.current && openRef.current(
-            {
-              title: "Transaction Detected",
-              type:
-                event.oldValue !== "" ? ToastTypes.ALERT : ToastTypes.SUCCESS,
-              message: `New ${
-                event.oldValue !== "" ? "replace" : ""
-              } transaction added to the watcher. Hash is ${event.newValue}`,
-              urlText: "View in Explorer",
-              url: `https://etherscan.com/tx/${event.newValue}`,
-            },
-            6000
-          );
+
+          openRef.current &&
+            openRef.current(
+              {
+                title: "Transaction Detected",
+                type:
+                  event.oldValue !== "" ? ToastTypes.ALERT : ToastTypes.SUCCESS,
+                message: `New ${
+                  event.oldValue !== "" ? "replace" : ""
+                } transaction added to the watcher. Hash is ${event.newValue}`,
+                urlText: "View in Explorer",
+                url: `https://etherscan.com/tx/${event.newValue}`,
+              },
+              6000
+            );
         }
       }
     };
-    addEventListener("storage", (event) => {
-      handleStorage(event);
-    });
+    addEventListener("storage", handleStorage);
     return () => {
       removeEventListener("storage", handleStorage);
     };

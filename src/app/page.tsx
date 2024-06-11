@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import Blockchain from "./components/Web3Components/Blockchain";
 import PendingTransaction from "./components/Web3Components/PendingTransaction";
 import SendTokens from "./components/Web3Components/SendTokens";
-import { useAlchemyContext, useChainContext } from "./context/RootContext";
+import { useChainContext } from "./context/RootContext";
 import Tooltip from "./components/BaseComponents/Tooltip";
 import { AnimatePresence, m } from "framer-motion";
 import { useAccount } from "wagmi";
+import useAlchemyHooks from "./actions/useAlchemyHooks";
 
 export type TokenData = {
   balance: string;
@@ -29,8 +30,8 @@ export type FormData = {
 
 const Home = () => {
   const [isSendTab, setIsSendTab] = useState<boolean>(false);
-  const { address, blockNumber } = useChainContext();
-  const { getTokenData } = useAlchemyContext();
+  const { address, blockNumber,chain } = useChainContext();
+  const { getTokenData, fetchStates } = useAlchemyHooks();
 
   const [formData, setFormData] = useState<FormData>({
     selectedToken: undefined,
@@ -56,7 +57,7 @@ const Home = () => {
       amount: "",
       selectedToken: undefined,
     }));
-  }, [address]);
+  }, [address,chain]);
 
   useEffect(() => {
     if (!formData.selectedToken?.address) return;
@@ -67,7 +68,7 @@ const Home = () => {
   }, [formData.selectedToken?.address,blockNumber, getTokenData]);
 
   return (
-    <div className="flex flex-col w-full min-h-[92vh] md:min-h-[90vh] items-center px-8 mt-4">
+    <div className="flex flex-col w-full min-h-[92vh] md:min-h-[90vh] items-center px-8">
       <AnimatePresence>
         <m.div
           key="pendingTx"
@@ -128,7 +129,7 @@ const Home = () => {
                 transition: { duration: 0.1 },
               }}
             >
-              <SendTokens formData={formData} setFormData={setFormData}/>
+              <SendTokens formData={formData} setFormData={setFormData} isUpdating={fetchStates.tokenData}/>
             </m.div>
           ) : (
             <m.div

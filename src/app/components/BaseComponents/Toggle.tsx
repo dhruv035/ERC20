@@ -16,7 +16,7 @@ const Toggle = ({
 
 
   return (
-    <div className={`group/toggle select-none rounded-full p-[1px] mr-2 text-text shadow-fuller hover:cursor-pointer shadow-gray-600 hover:text-base-green hover:bg-base-green nohover:hover:text-gray-600 nohover:hover:bg-navbar`}>
+    <div className={`group/toggle select-none rounded-full p-[1px] mr-2 md:mr-8 text-text shadow-fuller hover:cursor-pointer shadow-gray-600 hover:text-base-green hover:bg-base-green nohover:hover:text-gray-600 nohover:hover:bg-navbar`}>
       <div
         onClick={(e) => {
           toggle();

@@ -1,26 +1,28 @@
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { TokenData } from "../../../page";
 import Input from "../../BaseComponents/Input";
 import TokenSearchModal from "./TokenSearchModal";
-import { useAlchemyContext, useToast } from "@/app/context/RootContext";
+import { useToast } from "@/app/context/RootContext";
 import { ToastTypes } from "../../BaseComponents/Toast";
 import { countDecimals } from "@/app/actions/utils";
+import useAlchemyHooks from "@/app/actions/useAlchemyHooks";
 
 const TokenInput = ({
   amount,
   selectedToken,
+  isUpdating,
   setToken,
   setAmount,
 }: {
   amount: string;
   selectedToken?: TokenData;
-  setToken: (token:TokenData)=> void;
+  isUpdating: boolean | undefined;
+  setToken: (token: TokenData) => void;
   setAmount: (amount: string) => void;
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const { open: openToast } = useToast();
-  const { fetchStates } = useAlchemyContext();
   const ref = useRef<HTMLDivElement>(null);
 
   return (
@@ -96,55 +98,50 @@ const TokenInput = ({
                 />
               </div>
               <div className="flex flex-col w-[30%] items-end my-1">
-                <div className="flex p-[1px] rounded-full hover:bg-accent mr-1 sm:mr-4">
-                  <button
-                    onClick={() => {
-                      setIsOpen((prevState) => !prevState);
-                    }}
-                    className={`flex flex-row bg-background p-1 sm:p-2 rounded-full text-xs w-full 
+                <button
+                  onClick={() => {
+                    setIsOpen((prevState) => !prevState);
+                  }}
+                  className={`border-[1px] border-background hover:border-accent mr-1 sm:mr-4 flex flex-row bg-background p-1 sm:p-2 rounded-full text-xs w-full 
                     items-center max-w-[90px] nohover:text-accent nohover:shadow-accent whitespace-nowrap shadow-fuller 
                     hover:shadow-accent  hover:text-accent ${
                       selectedToken
                         ? " underline shadow-accent"
                         : "italic shadow-shadow"
                     }`}
-                  >
-                    {selectedToken && (
-                      <Image
-                        className="mr-[4px] rounded-[100%]"
-                        src={
-                          selectedToken.metaData.logo ??
-                          "https://picsum.photos/200"
-                        }
-                        alt=""
-                        style={{
-                          width: "20px",
-                          height: "20px",
-                        }}
-                        width={20}
-                        height={20}
-                      ></Image>
-                    )}
-                    <p className="overflow-hidden">
-                      {(selectedToken?.metaData?.symbol?.length &&
-                      selectedToken?.metaData.symbol.length > 6
-                        ? selectedToken?.metaData.symbol.substring(0, 5) + ".."
-                        : selectedToken?.metaData.symbol) ?? "Select Token"}
-                    </p>
-                  </button>
-                </div>
+                >
+                  {selectedToken && (
+                    <Image
+                      className="mr-[4px] rounded-[100%]"
+                      src={
+                        selectedToken.metaData.logo ??
+                        "https://picsum.photos/200"
+                      }
+                      alt=""
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                      }}
+                      width={20}
+                      height={20}
+                    ></Image>
+                  )}
+                  <p className="overflow-hidden">
+                    {(selectedToken?.metaData?.symbol?.length &&
+                    selectedToken?.metaData.symbol.length > 6
+                      ? selectedToken?.metaData.symbol.substring(0, 5) + ".."
+                      : selectedToken?.metaData.symbol) ?? "Select Token"}
+                  </p>
+                </button>
               </div>
             </div>
             <div className="flex w-full flex-row-reverse whitespace-nowrap items-baseline">
-              <div className="flex flex-row text-xs text-gray-500 ">
-                <p>Balance:</p>{" "}
-                <div
-                  className={`${
-                    fetchStates.balance ? "animate-pulse-fast" : ""
-                  }`}
-                >
-                  {selectedToken?.balance}
-                </div>
+              <div
+                className={`flex flex-row text-sm ${
+                  isUpdating ? "text-red-600 animate-pulse-fast" : "text-accent"
+                } `}
+              >
+                <p>Balance:</p> <div>{selectedToken?.balance}</div>
               </div>
               <button
                 disabled={selectedToken ? false : true}

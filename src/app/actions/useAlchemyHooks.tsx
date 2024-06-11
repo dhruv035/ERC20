@@ -1,7 +1,5 @@
 "use  client";
-import { NextPage } from "next";
 import {
-  ReactNode,
   createContext,
   useCallback,
   useEffect,
@@ -9,56 +7,59 @@ import {
   useRef,
   useState,
 } from "react";
-import { useChainContext } from "./RootContext";
 import {
   Alchemy,
   Network,
-  TokenBalancesResponse,
   TokenMetadataResponse,
   TransactionResponse,
 } from "alchemy-sdk";
 import { MetaData, TokenData } from "../page";
 import { formatUnits, hexToBigInt } from "viem";
+import { useChainContext } from "../context/RootContext";
 
 //Global contexts may be persisted and managed here
 
 type FetchStates = {
   metaData: boolean;
-  balance: boolean;
-  allBalances: boolean;
+  tokenData: boolean;
+  tokenDataArray: boolean;
+  allTokenData: boolean;
   transaction: boolean;
 };
 
 export type AlchemyContextType = {
+  isFetchingAlchemy: boolean;
+  fetchStates: FetchStates;
+  initializeStates: FetchStates;
   getMetaData: (
     tokenAddress: string
   ) => Promise<TokenMetadataResponse | undefined>;
   getTokenData: (tokenAddress: string) => Promise<TokenData | undefined>;
   getAllTokenData: () => Promise<TokenData[] | undefined>;
   getTransaction: (hash: string) => Promise<TransactionResponse | undefined>;
-  isFetchingAlchemy: boolean;
-  fetchStates: FetchStates;
-  initializeStates:FetchStates;
+  resetInitializeStates: () => void;
 };
 
 export const AlchemyContext = createContext<AlchemyContextType>(
   {} as AlchemyContextType
 );
 
-const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
+const useAlchemyHooks = () => {
   const { address, chain } = useChainContext();
 
   const [fetchStates, setFetchStates] = useState<FetchStates>({
     metaData: false,
-    balance: false,
-    allBalances: false,
+    tokenData: false,
+    tokenDataArray: false,
+    allTokenData: false,
     transaction: false,
   });
 
-  const [initializeStates, setInitializeState] = useState<FetchStates>({
+  const [initializeStates, setInitializeStates] = useState<FetchStates>({
     metaData: false,
-    balance: false,
-    allBalances: false,
+    tokenData: false,
+    tokenDataArray: false,
+    allTokenData: false,
     transaction: false,
   });
 
@@ -86,6 +87,9 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
     setFetchStates((prevState) => ({ ...prevState, [type]: state }));
   };
 
+  const setInitializeState = (type: keyof FetchStates, state: boolean) => {
+    setInitializeStates((prevState) => ({ ...prevState, [type]: state }));
+  };
   const fetchRef = useRef<FetchStates>();
   fetchRef.current = fetchStates;
 
@@ -101,29 +105,76 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
       const response = await alchemy.core.getTokenMetadata(tokenAddress);
       setFetchState("metaData", false);
       if (initializeRef.current?.metaData === false) {
-        setInitializeState((prevState) => ({ ...prevState, metaData: true }));
+        setInitializeState("metaData", true);
       }
       return response;
     },
     [alchemy]
   );
 
-  useEffect(() => {
-    setInitializeState({
+  const resetInitializeStates = () => {
+    setInitializeStates({
       metaData: false,
-      balance: false,
-      allBalances: false,
+      tokenData: false,
+      tokenDataArray:false,
+      allTokenData: false,
       transaction: false,
     });
+  };
+
+  useEffect(() => {
+    resetInitializeStates();
   }, [address]);
+
+  const getTokenDataArray = useCallback(
+    async (tokenAddresses: Array<string>) => {
+      if (fetchRef.current?.tokenData === true) {
+        return;
+      }
+      
+
+      setFetchState("tokenDataArray", true);
+      const res = await alchemy.core.getTokenBalances(
+        address as string,
+        tokenAddresses
+      );
+
+      const response = res.tokenBalances[0];
+
+      const metaDatas = await Promise.all(
+        tokenAddresses.map((token) => {
+          return getMetaData(token);
+        })
+      );
+      
+      const tokensData:Array<TokenData> = await Promise.all(res.tokenBalances.map(async(token)=>{
+        const metaData = await getMetaData(token.contractAddress);
+        const balance = formatUnits(
+          hexToBigInt(token.tokenBalance as `0x${string}`),
+          metaData.decimals ?? 9
+        );
+        return {
+          metaData,
+          address:token.contractAddress,
+          balance
+        } as TokenData
+      }))
+      setFetchState("tokenDataArray", false);
+      if (initializeRef.current?.tokenData === false) {
+        setInitializeState("tokenDataArray", true);
+      }
+      return tokensData;
+    },
+    [alchemy, address, getMetaData]
+  );
   const getTokenData = useCallback(
     async (tokenAddress: string) => {
-      if (fetchRef.current?.balance === true) {
+      if (fetchRef.current?.tokenData === true) {
         return;
       }
       const metaData = await getMetaData(tokenAddress);
 
-      setFetchState("balance", true);
+      setFetchState("tokenData", true);
       const addresses = [tokenAddress];
       const res = await alchemy.core.getTokenBalances(
         address as string,
@@ -141,9 +192,9 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
         address: tokenAddress,
         balance,
       } as TokenData;
-      setFetchState("balance", false);
-      if (initializeRef.current?.balance === false) {
-        setInitializeState((prevState) => ({ ...prevState, balance: true }));
+      setFetchState("tokenData", false);
+      if (initializeRef.current?.tokenData === false) {
+        setInitializeState("tokenData", true);
       }
       return tokenData;
     },
@@ -154,10 +205,10 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
   fetchingRef.current = isFetching;
 
   const getAllTokenData = useCallback(async () => {
-    if (fetchRef.current?.allBalances === true) {
+    if (fetchRef.current?.allTokenData === true) {
       return;
     }
-    setFetchState("allBalances", true);
+    setFetchState("allTokenData", true);
     //This function returns non 0 balances for all the tokens, can be edited to show zero balance tokens as well based on all tokens you have ever interacted with
     const data = await alchemy.core.getTokenBalances(address as `0x${string}`);
     const formatted = await Promise.all(
@@ -181,16 +232,16 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
         })
     );
 
-    setFetchState("allBalances", false);
-    if (initializeRef.current?.allBalances === false) {
-      setInitializeState((prevState) => ({ ...prevState, allBalances: true }));
+    setFetchState("allTokenData", false);
+    if (initializeRef.current?.allTokenData === false) {
+      setInitializeState("allTokenData", true);
     }
     return formatted;
   }, [alchemy, getMetaData, address]);
 
   const getTransaction = useCallback(
     async (hash: string) => {
-      if (fetchRef.current?.allBalances === true) {
+      if (fetchRef.current?.allTokenData === true) {
         return;
       }
       setFetchState("transaction", true);
@@ -198,10 +249,7 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
       setFetchState("transaction", false);
 
       if (initializeRef.current?.transaction === false) {
-        setInitializeState((prevState) => ({
-          ...prevState,
-          transaction: true,
-        }));
+        setInitializeState("transaction", true);
       }
 
       return response ?? undefined;
@@ -209,21 +257,16 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
     [alchemy]
   );
 
-  return (
-    <AlchemyContext.Provider
-      value={{
-        getMetaData,
-        getTokenData,
-        getAllTokenData,
-        getTransaction,
-        isFetchingAlchemy: isFetching,
-        fetchStates,
-        initializeStates,
-      }}
-    >
-      {children}
-    </AlchemyContext.Provider>
-  );
+  return {
+    isFetchingAlchemy: isFetching,
+    fetchStates,
+    initializeStates,
+    getMetaData,
+    getTokenData,
+    getAllTokenData,
+    getTransaction,
+    resetInitializeStates,
+  };
 };
 
-export default AlchemyProvider;
+export default useAlchemyHooks;

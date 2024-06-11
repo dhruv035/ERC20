@@ -3,22 +3,18 @@ import TokenInput from "./Tokens/TokenInput";
 import Input from "../BaseComponents/Input";
 import GasStation from "./GasStation";
 import { FormData, TokenData } from "../../page";
-import {
-  useAlchemyContext,
-  useChainContext,
-  useTransactionContext,
-} from "@/app/context/RootContext";
+import { useTransactionContext } from "@/app/context/RootContext";
 import useERC20 from "@/app/actions/erc20Hooks";
 import Spinner from "../BaseComponents/Spinner";
 import Tooltip from "../BaseComponents/Tooltip";
 
-
-
 const SendTokens = ({
   formData,
+  isUpdating,
   setFormData,
 }: {
   formData: FormData;
+  isUpdating: boolean | undefined;
   setFormData: Dispatch<SetStateAction<FormData>>;
 }) => {
   const [localDisable, setLocalDisable] = useState<boolean>(false);
@@ -73,7 +69,6 @@ const SendTokens = ({
         setLocalDisable(event.newValue === "true");
       }
     };
-
     addEventListener("storage", handleLocalDisable);
     return () => {
       removeEventListener("storage", handleLocalDisable);
@@ -88,6 +83,7 @@ const SendTokens = ({
       {
         <div className="flex flex-col px-2 md:px-4">
           <TokenInput
+            isUpdating={isUpdating}
             amount={formData.amount}
             setAmount={setAmount}
             selectedToken={formData.selectedToken}
@@ -141,7 +137,11 @@ const SendTokens = ({
             </div>
             {
               <Tooltip
-                isHidden={pendingState.isTxDisabled || localDisable}
+                isHidden={
+                  localDisable ||
+                  pendingState.isTxDisabled ||
+                  !formData.selectedToken
+                }
                 text={
                   localDisable
                     ? "Sending Transaction"

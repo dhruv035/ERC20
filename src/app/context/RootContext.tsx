@@ -16,7 +16,6 @@ import TransactionProvider, { TransactionContext } from "./TransactionContext";
 import ChainProvider, { ChainContext } from "./ChainContext";
 import ToastProvider, { ToastContext } from "./ToastContext";
 import TimerProvider, { TimerContext } from "./TimerContext";
-import AlchemyProvider, { AlchemyContext } from "./AlchemyContext";
 import { LazyMotion, domAnimation } from "framer-motion";
 
 // Setup queryClient
@@ -45,6 +44,7 @@ export const config = getDefaultConfig({
   storage: createStorage({
     storage: cookieStorage,
   }),
+  
   ssr: true, //Cookies and SSR to avoid hydration error on nextjs
 });
 export function ContextProvider({
@@ -64,9 +64,7 @@ export function ContextProvider({
             <RainbowKitProvider theme={isDark ? darkTheme() : lightTheme()}>
               <TimerProvider>
                 <ChainProvider>
-                  <AlchemyProvider>
                     <TransactionProvider>{children}</TransactionProvider>
-                  </AlchemyProvider>
                 </ChainProvider>
               </TimerProvider>
             </RainbowKitProvider>
@@ -81,4 +79,3 @@ export const useChainContext = () => useContext(ChainContext);
 export const useToast = () => useContext(ToastContext);
 export const useTransactionContext = () => useContext(TransactionContext);
 export const useTimerContext = () => useContext(TimerContext);
-export const useAlchemyContext = () => useContext(AlchemyContext);
