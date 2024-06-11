@@ -1,36 +1,26 @@
-import {
-  Dispatch,
-  SetStateAction,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import Image from "next/image";
 import { TokenData } from "../../../page";
 import Input from "../../BaseComponents/Input";
 import TokenSearchModal from "./TokenSearchModal";
-import { useToast } from "@/app/context/RootContext";
+import { useAlchemyContext, useToast } from "@/app/context/RootContext";
 import { ToastTypes } from "../../BaseComponents/Toast";
 import { countDecimals } from "@/app/actions/utils";
 
-
 const TokenInput = ({
-  tokens,
   amount,
   selectedToken,
   setToken,
   setAmount,
-  setTokens,
 }: {
-  tokens: TokenData[];
   amount: string;
   selectedToken?: TokenData;
-  setToken: (address: string) => void;
+  setToken: (token:TokenData)=> void;
   setAmount: (amount: string) => void;
-  setTokens:Dispatch<SetStateAction<TokenData[]|undefined>>;
 }) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const { open: openToast } = useToast();
-
+  const { fetchStates } = useAlchemyContext();
   const ref = useRef<HTMLDivElement>(null);
 
   return (
@@ -41,7 +31,9 @@ const TokenInput = ({
             selectedToken ? "" : "bg-gray-400"
           }`}
         >
-          <div className={`flex flex-col overflow-hidden rounded-2xl p-2 bg-background `}>
+          <div
+            className={`flex flex-col overflow-hidden rounded-2xl p-2 bg-background `}
+          >
             <div className="flex overflow-hidden flex-row">
               <div className="group w-[70%]">
                 <p
@@ -54,39 +46,39 @@ const TokenInput = ({
                 <Input
                   placeholder="0"
                   type="number"
-                  className={`text-4xl text-accent border-2px border-white w-fit bg-transparent `}
+                  className={`text-2xl text-accent border-2px border-white w-fit bg-transparent `}
                   disabled={selectedToken ? false : true}
                   value={amount}
                   onChange={(e) => {
-                    if(!selectedToken)
-                      return;
+                    if (!selectedToken) return;
 
                     const decimals = countDecimals(e.target.value);
-                    console.log("decimals",decimals,selectedToken.metaData.decimals)
-                    if(Number(e.target.value)<0)
-                      {
-                        openToast(
-                          {
-                            title: "Amount Too low",
-                            type: ToastTypes.ERROR,
-                            message: `Cannot set amount to negative`,
-                          },
-                          6000
-                        );
-                        setAmount("0");
-                      }
-                      else if(selectedToken.metaData.decimals<decimals){
-                        openToast(
-                          {
-                            title: "Decimal point exceeded",
-                            type: ToastTypes.ERROR,
-                            message: `Token supports only ${selectedToken.metaData.decimals} decimals`,
-                          },
-                          6000
-                        );
-                        return 
-                      }
-                    else if (
+                    console.log(
+                      "decimals",
+                      decimals,
+                      selectedToken.metaData.decimals
+                    );
+                    if (Number(e.target.value) < 0) {
+                      openToast(
+                        {
+                          title: "Amount Too low",
+                          type: ToastTypes.ERROR,
+                          message: `Cannot set amount to negative`,
+                        },
+                        6000
+                      );
+                      setAmount("0");
+                    } else if (selectedToken.metaData.decimals < decimals) {
+                      openToast(
+                        {
+                          title: "Decimal point exceeded",
+                          type: ToastTypes.ERROR,
+                          message: `Token supports only ${selectedToken.metaData.decimals} decimals`,
+                        },
+                        6000
+                      );
+                      return;
+                    } else if (
                       selectedToken?.balance &&
                       Number(e.target.value) > Number(selectedToken?.balance)
                     ) {
@@ -134,7 +126,7 @@ const TokenInput = ({
                       ></Image>
                     )}
                     <p className="overflow-hidden">
-                      {(selectedToken?.metaData.symbol.length &&
+                      {(selectedToken?.metaData?.symbol?.length &&
                       selectedToken?.metaData.symbol.length > 6
                         ? selectedToken?.metaData.symbol.substring(0, 5) + ".."
                         : selectedToken?.metaData.symbol) ?? "Select Token"}
@@ -144,9 +136,16 @@ const TokenInput = ({
               </div>
             </div>
             <div className="flex w-full flex-row-reverse whitespace-nowrap items-baseline">
-              <p className="text-xs text-gray-500 ">
-                Balance: {selectedToken?.balance}
-              </p>
+              <div className="flex flex-row text-xs text-gray-500 ">
+                <p>Balance:</p>{" "}
+                <div
+                  className={`${
+                    fetchStates.balance ? "animate-pulse-fast" : ""
+                  }`}
+                >
+                  {selectedToken?.balance}
+                </div>
+              </div>
               <button
                 disabled={selectedToken ? false : true}
                 onClick={(e) => {
@@ -160,14 +159,14 @@ const TokenInput = ({
           </div>
         </div>
       }
-      <TokenSearchModal
-        selectedToken={selectedToken}
-        tokens={tokens}
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        setToken={setToken}
-        setTokens={setTokens}
-      />
+      {isOpen && (
+        <TokenSearchModal
+          selectedToken={selectedToken}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          setToken={setToken}
+        />
+      )}
     </div>
   );
 };

@@ -12,28 +12,34 @@ import Image from "next/image";
 import Input from "../../BaseComponents/Input";
 import { isAddress } from "viem";
 import Modal from "../../BaseComponents/Modal";
-import { useAlchemyContext } from "@/app/context/RootContext";
-import Spinner from "../../BaseComponents/Spinner";
+import { useAlchemyContext, useChainContext } from "@/app/context/RootContext";
+import { addToken } from "@/app/actions/localStorageUtils";
+import { Spinner } from "../../BaseComponents";
+import { initialize } from "next/dist/server/lib/render-server";
 
 //I had previously factored this into a seperate Modal component but there is no re usage of Modal
 const TokenSearchModal = ({
-  tokens,
+  selectedToken,
   isOpen,
   setIsOpen,
   setToken,
-  setTokens,
 }: {
   selectedToken: TokenData | undefined;
-  tokens: TokenData[];
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  setToken: (address: string) => void;
-  setTokens: Dispatch<SetStateAction<TokenData[] | undefined>>;
+  setToken: (token: TokenData) => void;
 }) => {
+  const [tokens, setTokens] = useState<TokenData[]>();
   const [input, setInput] = useState<string>("");
   const [isCustom, setIsCustom] = useState<boolean>(false);
-  const [metaData, setMetaData] = useState<MetaData | undefined>();
-  const { getMetaData, getBalance,fetchStates } = useAlchemyContext();
+  const [customMetaData, setCustomMetaData] = useState<MetaData | undefined>();
+  const { address, blockNumber } = useChainContext();
+
+  const { getAllTokenData, initializeStates } = useAlchemyContext();
+  const [customTokens, setCustomTokens] = useState<TokenData[]>();
+
+  console.log("SEARCYMODEAL");
+  const { getMetaData, fetchStates } = useAlchemyContext();
   const filteredTokens = useMemo(() => {
     if (!tokens) return [] as TokenData[];
     if (input === "") return tokens;
@@ -45,7 +51,6 @@ const TokenSearchModal = ({
     });
     return filteredData;
   }, [input, tokens]);
-  
 
   const isValid = useMemo(() => {
     return isAddress(input);
@@ -60,41 +65,55 @@ const TokenSearchModal = ({
     if (isValid) {
       getMetaData(input).then((data) => {
         if (!data) return;
-        setMetaData(data as MetaData);
+        setCustomMetaData(data as MetaData);
       });
     }
-  }, [isValid]);
+  }, [isValid, getMetaData, input]);
 
-  console.log("TOKENS",tokens)
-  const handleImport = async () => {
-    const balance = await getBalance(input);
-    console.log("BALANCE", balance);
-    setTokens((prevState) => {
-      console.log("PREV", metaData, prevState);
-      if (!metaData) return prevState;
-      console.log;
-      if (typeof prevState === "undefined") {
-        return [
-          {
-            metaData: metaData,
-            address: input,
-            balance: "0",
-          },
-        ];
-      } else {
-        return [
-          ...prevState,
-          {
-            metaData: metaData,
-            address: input,
-            balance: "0",
-          },
-        ];
-      }
+  useEffect(() => {
+    if (!address) return;
+    //Fetch token balances for all ERC20 tokens in wallet
+    getAllTokenData().then((data) => {
+      setTokens(data);
     });
-    setToken(input);
-  };
+  }, [address, getAllTokenData]);
 
+  useEffect(() => {
+    if (!blockNumber) return;
+    if (!address) return;
+    getAllTokenData().then((data) => {
+      setTokens(data);
+    });
+  }, [blockNumber, address, getAllTokenData]);
+
+  const handleImport = async () => {
+    addToken(input);
+
+    // const balance = await getBalance(input);
+    // setTokens((prevState) => {
+    //   if (!metaData) return prevState;
+    //   console.log;
+    //   if (typeof prevState === "undefined") {
+    //     return [
+    //       {
+    //         metaData: metaData,
+    //         address: input,
+    //         balance: "0",
+    //       },
+    //     ];
+    //   } else {
+    //     return [
+    //       ...prevState,
+    //       {
+    //         metaData: metaData,
+    //         address: input,
+    //         balance: "0",
+    //       },
+    //     ];
+    //   }
+    // });
+    // setToken(input);
+  };
 
   return (
     <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -142,8 +161,8 @@ const TokenSearchModal = ({
             onChange={(e) => setInput(e.target.value)}
           />
 
-          {fetchStates.allBalances ? (
-            <Spinner/>
+          {!initializeStates.metaData ? (
+            <Spinner />
           ) : (
             <ul className=" flex bg-transparent h-fit max-h-[500px] w-full rounded-2xl justify-center overflow-scroll no-scrollbar">
               <div className="flex flex-col mx-4 border-white border-[1px] rounded-2xl w-full max-w-96">
@@ -154,7 +173,7 @@ const TokenSearchModal = ({
                       key={index}
                       onClick={() => {
                         setIsOpen(false);
-                        setToken(token.address);
+                        setToken(token);
                       }}
                     >
                       <Image
@@ -172,9 +191,18 @@ const TokenSearchModal = ({
                         <p className="whitespace-nowrap">
                           {token.metaData.name}
                         </p>
-                        <p className="text-sm font-600 text-gray-400">
-                          Balance: {token.balance}
-                        </p>
+                        <div className="flex flex-row text-sm font-600 text-gray-400">
+                          Balance:{" "}
+                          <p
+                            className={`${
+                              fetchStates.allBalances
+                                ? "animate-pulse-fast"
+                                : ""
+                            }`}
+                          >
+                            {token.balance}
+                          </p>
+                        </div>
                       </div>
                     </li>
                   );

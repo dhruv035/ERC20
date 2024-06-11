@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Blockchain from "./components/Web3Components/Blockchain";
 import PendingTransaction from "./components/Web3Components/PendingTransaction";
 import SendTokens from "./components/Web3Components/SendTokens";
 import { useAlchemyContext, useChainContext } from "./context/RootContext";
 import Tooltip from "./components/BaseComponents/Tooltip";
-import { AnimatePresence, m, domAnimation, LazyMotion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
+import { useAccount } from "wagmi";
 
 export type TokenData = {
   balance: string;
@@ -25,38 +26,45 @@ export type FormData = {
   toAddress: string;
   amount: string;
 };
+
 const Home = () => {
   const [isSendTab, setIsSendTab] = useState<boolean>(false);
-  const { blockNumber } = useChainContext();
-  const [tokens, setTokens] = useState<TokenData[]>();
-  const [customToken, setCustomToken] = useState<TokenData>();
+  const { address, blockNumber } = useChainContext();
+  const { getTokenData } = useAlchemyContext();
+
   const [formData, setFormData] = useState<FormData>({
     selectedToken: undefined,
     toAddress: "",
     amount: "",
   });
-  const { address, chain } = useChainContext();
-
-  const { getAllBalances } = useAlchemyContext();
-
+  
   useEffect(() => {
     if (!address) {
       setIsSendTab(false);
       return;
     }
-    //Fetch token balances for all ERC20 tokens in wallet
-    getAllBalances().then((data) => {
-      setTokens(data);
-    });
-  }, [address, getAllBalances]);
+  }, [address]);
+
 
   useEffect(() => {
+    setFormData((prevState) => ({ ...prevState, amount: "" }));
+  }, [formData.selectedToken?.address]);
+
+  useEffect(() => {
+    setFormData((prevState) => ({
+      ...prevState,
+      amount: "",
+      selectedToken: undefined,
+    }));
+  }, [address]);
+
+  useEffect(() => {
+    if (!formData.selectedToken?.address) return;
     if (!blockNumber) return;
-    if (!address) return;
-    getAllBalances().then((data) => {
-      setTokens(data);
+    getTokenData(formData.selectedToken.address).then((data) => {
+      setFormData((prevState) => ({ ...prevState, selectedToken: data }));
     });
-  }, [blockNumber, address]);
+  }, [formData.selectedToken?.address,blockNumber, getTokenData]);
 
   return (
     <div className="flex flex-col w-full min-h-[92vh] md:min-h-[90vh] items-center px-8 mt-4">
@@ -107,34 +115,34 @@ const Home = () => {
         <AnimatePresence mode={"wait"}>
           {isSendTab ? (
             <m.div
-              key="asd"
-              initial={{ opacity: 0, translateY: 100 }}
+              key="sendTokens"
+              initial={{ opacity: 0, translateX: -100 }}
               animate={{
                 opacity: 1,
-                translateY: 0,
-                transition: { duration: 0.2 },
+                translateX: 0,
+                transition: { duration: 0.1 },
               }}
               exit={{
                 opacity: 0,
-                translateY: 100,
-                transition: { duration: 0.2 },
+                translateX: -100,
+                transition: { duration: 0.1 },
               }}
             >
-              <SendTokens tokens={tokens} setTokens={setTokens} />
+              <SendTokens formData={formData} setFormData={setFormData}/>
             </m.div>
           ) : (
             <m.div
-              key="123"
-              initial={{ opacity: 0, translateY: 100 }}
+              key="chainData"
+              initial={{ opacity: 0, translateX: 100 }}
               animate={{
                 opacity: 1,
-                translateY: 0,
-                transition: { duration: 0.2 },
+                translateX: 0,
+                transition: { duration: 0.1 },
               }}
               exit={{
                 opacity: 0,
-                translateY: 100,
-                transition: { duration: 0.2 },
+                translateX: 100,
+                transition: { duration: 0.1 },
               }}
             >
               <Blockchain />

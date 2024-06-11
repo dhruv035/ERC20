@@ -4,6 +4,7 @@ import {
   ReactNode,
   createContext,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -32,13 +33,12 @@ export type AlchemyContextType = {
   getMetaData: (
     tokenAddress: string
   ) => Promise<TokenMetadataResponse | undefined>;
-  getBalance: (
-    tokenAddress: string
-  ) => Promise<TokenBalancesResponse | undefined>;
-  getAllBalances: () => Promise<TokenData[] | undefined>;
+  getTokenData: (tokenAddress: string) => Promise<TokenData | undefined>;
+  getAllTokenData: () => Promise<TokenData[] | undefined>;
   getTransaction: (hash: string) => Promise<TransactionResponse | undefined>;
   isFetchingAlchemy: boolean;
   fetchStates: FetchStates;
+  initializeStates:FetchStates;
 };
 
 export const AlchemyContext = createContext<AlchemyContextType>(
@@ -55,10 +55,17 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
     transaction: false,
   });
 
+  const [initializeStates, setInitializeState] = useState<FetchStates>({
+    metaData: false,
+    balance: false,
+    allBalances: false,
+    transaction: false,
+  });
+
   const alchemy = useMemo(() => {
     const settings = {
       apiKey: process.env.NEXT_PUBLIC_ALCHEMY_SEPOLIA,
-      network: chain
+      network: chain?.id
         ? chain?.id === 1
           ? Network.ETH_MAINNET
           : Network.ETH_SEPOLIA
@@ -66,6 +73,7 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
     };
     return new Alchemy(settings);
   }, [chain?.id]);
+
   const isFetching = useMemo<boolean>(() => {
     let flag = Object.values(fetchStates).every((state) => {
       state !== true;
@@ -80,6 +88,10 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
 
   const fetchRef = useRef<FetchStates>();
   fetchRef.current = fetchStates;
+
+  const initializeRef = useRef<FetchStates>();
+  initializeRef.current = initializeStates;
+
   const getMetaData = useCallback(
     async (tokenAddress: string) => {
       if (fetchRef.current?.metaData === true) {
@@ -88,32 +100,60 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
       setFetchState("metaData", true);
       const response = await alchemy.core.getTokenMetadata(tokenAddress);
       setFetchState("metaData", false);
+      if (initializeRef.current?.metaData === false) {
+        setInitializeState((prevState) => ({ ...prevState, metaData: true }));
+      }
       return response;
     },
     [alchemy]
   );
 
-  const getBalance = useCallback(
+  useEffect(() => {
+    setInitializeState({
+      metaData: false,
+      balance: false,
+      allBalances: false,
+      transaction: false,
+    });
+  }, [address]);
+  const getTokenData = useCallback(
     async (tokenAddress: string) => {
       if (fetchRef.current?.balance === true) {
         return;
       }
+      const metaData = await getMetaData(tokenAddress);
+
       setFetchState("balance", true);
       const addresses = [tokenAddress];
-      const response = await alchemy.core.getTokenBalances(
+      const res = await alchemy.core.getTokenBalances(
         address as string,
         addresses
       );
+
+      const response = res.tokenBalances[0];
+
+      const balance = formatUnits(
+        hexToBigInt(response.tokenBalance as `0x${string}`),
+        metaData.decimals ?? 9
+      );
+      const tokenData = {
+        metaData,
+        address: tokenAddress,
+        balance,
+      } as TokenData;
       setFetchState("balance", false);
-      return response;
+      if (initializeRef.current?.balance === false) {
+        setInitializeState((prevState) => ({ ...prevState, balance: true }));
+      }
+      return tokenData;
     },
-    [alchemy, address]
+    [alchemy, address, getMetaData]
   );
 
   const fetchingRef = useRef<boolean>();
   fetchingRef.current = isFetching;
 
-  const getAllBalances = useCallback(async () => {
+  const getAllTokenData = useCallback(async () => {
     if (fetchRef.current?.allBalances === true) {
       return;
     }
@@ -129,10 +169,9 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
         )
         .map(async (token) => {
           const metaData = await getMetaData(token.contractAddress);
-
           const balance = formatUnits(
             hexToBigInt(token.tokenBalance as `0x${string}`),
-            metaData.decimals ?? 18
+            metaData.decimals ?? 6
           );
           return {
             metaData,
@@ -143,6 +182,9 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
     );
 
     setFetchState("allBalances", false);
+    if (initializeRef.current?.allBalances === false) {
+      setInitializeState((prevState) => ({ ...prevState, allBalances: true }));
+    }
     return formatted;
   }, [alchemy, getMetaData, address]);
 
@@ -154,6 +196,14 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
       setFetchState("transaction", true);
       const response = await alchemy.core.getTransaction(hash);
       setFetchState("transaction", false);
+
+      if (initializeRef.current?.transaction === false) {
+        setInitializeState((prevState) => ({
+          ...prevState,
+          transaction: true,
+        }));
+      }
+
       return response ?? undefined;
     },
     [alchemy]
@@ -163,11 +213,12 @@ const AlchemyProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
     <AlchemyContext.Provider
       value={{
         getMetaData,
-        getBalance,
-        getAllBalances,
+        getTokenData,
+        getAllTokenData,
         getTransaction,
         isFetchingAlchemy: isFetching,
         fetchStates,
+        initializeStates,
       }}
     >
       {children}

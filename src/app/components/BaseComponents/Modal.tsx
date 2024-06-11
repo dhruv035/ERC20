@@ -18,10 +18,14 @@ const Modal = ({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
+    return ()=>{
+      document.removeEventListener("mousedown",handleClickOutside)
+    }
   }, [ref, setIsOpen]);
   return (
-      <AnimatePresence>
+      <AnimatePresence >
         {isOpen?<m.div
+        
           key="modal"
           initial={{ opacity: 0, translateY:100 }}
           animate={{ opacity: 1, translateY:0, transition: { duration: 0.3 } }}

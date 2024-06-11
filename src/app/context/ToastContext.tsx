@@ -1,10 +1,10 @@
-import { ReactNode, createContext, useContext, useEffect } from "react";
+import { ReactNode, createContext } from "react";
 import { useState } from "react";
 import Toast, {
   ToastData,
   ToastTypes,
 } from "../components/BaseComponents/Toast";
-import { AnimatePresence, LazyMotion, domAnimation } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 
 export {type ToastData, ToastTypes} from "../components/BaseComponents/Toast"
 export type ToastContextType = {
@@ -44,6 +44,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
     setTimeout(() => close(id), timeout);
   };
 
+  
   const close = (id: number) => {
     setToasts((toasts: any) =>
       toasts.filter((toast: ToastData) => toast.id !== id)

@@ -103,7 +103,6 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     const handleConnect = (event: StorageEvent) => {
       if (event.key === "isConnected") {
-        console.log("isConnected event");
         window.location.reload();
       }
     };

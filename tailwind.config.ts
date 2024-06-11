@@ -20,6 +20,7 @@ const config: Config = {
       animation: {
         return: "return 1s ease-in-out",
         shrink: "shrink 1s ease-in-out",
+        'pulse-fast':" pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       keyframes: {
         return: {

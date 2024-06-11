@@ -22,11 +22,10 @@ export default function RootLayout({
 
   const darkRef = useRef<boolean>();
   darkRef.current = isDark;
-  const darkModeLocal = useMemo(() => {
-    console.log("HI");
-    if (typeof window !== "undefined") return localStorage.getItem("mode");
-    else return;
-  }, [typeof window]);
+  const darkModeLocal =
+    typeof window !== "undefined"
+      ? localStorage.getItem("mode")
+      : undefined;
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {

@@ -48,6 +48,19 @@ export const TransactionContext = createContext<TransactionContextType>(
 const TransactionProvider = ({ children }: { children: ReactNode }) => {
   const { open: openToast } = useToast();
 
+  const openRef = useRef<
+    (
+      data: {
+        title: string;
+        type: ToastTypes;
+        message: string;
+        url?: string | undefined;
+        urlText?: string | undefined;
+      },
+      timeout: number
+    ) => void
+  >();
+  openRef.current = openToast;
   const [pendingState, setPendingState] = useState<PendingState>({
     isTxDisabled: false,
   } as PendingState);
@@ -55,6 +68,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
 
   const { getTransaction: getAlchemyTransaction, isFetchingAlchemy } =
     useAlchemyContext();
+
   const blockRef = useRef<bigint>();
   const pendingStateRef = useRef<PendingState>();
 
@@ -115,6 +129,9 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
         6000
       );
   }, [openToast, error]);
+
+  //Side Effects
+
   useEffect(() => {
     if (status === "success") {
       handleSuccess();
@@ -123,10 +140,10 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [status, handleSuccess, handleError]);
 
+  //Handle localStorage updates here
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key === "pendingTx") {
-        if (pendingState) console.log("PendingStateEvent");
         if (
           event.newValue !== "" &&
           (event.newValue as `0x${string}`) !==
@@ -136,8 +153,8 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
             ...prevState,
             pendingTx: event.newValue as `0x${string}`,
           }));
-
-          openToast(
+          
+          openRef.current && openRef.current(
             {
               title: "Transaction Detected",
               type:
@@ -160,6 +177,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
       removeEventListener("storage", handleStorage);
     };
   }, []);
+
   //Update PendingState when pendingTx hash changes
   useEffect(() => {
     if (pendingState.pendingTx) {
@@ -192,6 +210,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
       }
     }
   }, [
+    pendingTxLocal,
     pendingState.pendingTx,
     getAlchemyTransaction,
     isFetchingAlchemy,

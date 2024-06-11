@@ -128,6 +128,7 @@ const useERC20 = () => {
       gasSettings,
       openToast,
       pendingState.pendingTx,
+      setPendingState,
     ]
   );
 

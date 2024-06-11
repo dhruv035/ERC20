@@ -4,6 +4,7 @@ import Input from "../BaseComponents/Input";
 import GasStation from "./GasStation";
 import { FormData, TokenData } from "../../page";
 import {
+  useAlchemyContext,
   useChainContext,
   useTransactionContext,
 } from "@/app/context/RootContext";
@@ -11,24 +12,60 @@ import useERC20 from "@/app/actions/erc20Hooks";
 import Spinner from "../BaseComponents/Spinner";
 import Tooltip from "../BaseComponents/Tooltip";
 
+
+
 const SendTokens = ({
-  tokens,
-  setTokens,
+  formData,
+  setFormData,
 }: {
-  tokens: TokenData[] | undefined;
-  setTokens: Dispatch<SetStateAction<TokenData[] | undefined>>;
+  formData: FormData;
+  setFormData: Dispatch<SetStateAction<FormData>>;
 }) => {
-  const [formData, setFormData] = useState<FormData>({
-    selectedToken: undefined,
-    toAddress: "",
-    amount: "",
-  });
   const [localDisable, setLocalDisable] = useState<boolean>(false);
   const { pendingState } = useTransactionContext();
-
-  const { address } = useChainContext();
-
   const { sendTokens } = useERC20();
+
+  //Form Updaters for the Input Field
+  const setToken = (token: TokenData) => {
+    setFormData((prevState) => {
+      return {
+        ...prevState,
+        selectedToken: token,
+      };
+    });
+  };
+
+  const setAmount = (amount: string) => {
+    setFormData((prevState) => {
+      return {
+        ...prevState,
+        amount: amount,
+      };
+    });
+  };
+
+  const handleSend = async () => {
+    if (!formData.selectedToken) return;
+    setLocalDisable(true);
+    localStorage.setItem("localDisable", "true");
+    try {
+      await sendTokens(
+        formData.selectedToken,
+        formData.toAddress as `0x${string}`,
+        formData.amount
+      );
+      setFormData({
+        selectedToken: undefined,
+        amount: "",
+        toAddress: "",
+      });
+    } catch (error) {
+    } finally {
+      setLocalDisable(false);
+      localStorage.setItem("localDisable", "false");
+    }
+  };
+  //Side Effects
 
   useEffect(() => {
     const handleLocalDisable = (event: StorageEvent) => {
@@ -43,41 +80,6 @@ const SendTokens = ({
     };
   }, []);
 
-  const tokensRef = useRef<TokenData[]>();
-  tokensRef.current = tokens;
-
-  const setToken = async (address: string) => {
-    if (!tokensRef.current) return;
-    const data = tokensRef.current.find((token) => token.address === address);
-    setFormData((prevState) => {
-      return {
-        ...prevState,
-        selectedToken: data,
-      };
-    });
-  };
-
-  useEffect(() => {
-    setFormData((prevState) => ({ ...prevState, amount: "" }));
-  }, [formData.selectedToken?.address]);
-
-  useEffect(() => {
-    setFormData((prevState) => ({
-      ...prevState,
-      amount: "",
-      selectedToken: undefined,
-    }));
-  }, [address]);
-
-  useEffect(() => {
-    if (formData.selectedToken?.address) {
-      const find = tokens?.find(
-        (token) => token.address === formData.selectedToken?.address
-      );
-      setFormData((prevState) => ({ ...prevState, selectedToken: find }));
-    }
-  }, [formData.selectedToken?.address, tokens]);
-
   return (
     <div>
       <p className="my-4 text-2xl text-accent text-center">
@@ -86,17 +88,8 @@ const SendTokens = ({
       {
         <div className="flex flex-col px-2 md:px-4">
           <TokenInput
-            setTokens={setTokens}
             amount={formData.amount}
-            setAmount={(amount) => {
-              setFormData((prevState) => {
-                return {
-                  ...prevState,
-                  amount: amount,
-                };
-              });
-            }}
-            tokens={tokens ?? []}
+            setAmount={setAmount}
             selectedToken={formData.selectedToken}
             setToken={setToken}
           />
@@ -136,27 +129,7 @@ const SendTokens = ({
               pendingState.isTxDisabled ||
               !formData.selectedToken
             }
-            onClick={async () => {
-              if (!formData.selectedToken) return;
-              setLocalDisable(true);
-              localStorage.setItem("localDisable", "true");
-              try {
-                await sendTokens(
-                  formData.selectedToken,
-                  formData.toAddress as `0x${string}`,
-                  formData.amount
-                );
-                setFormData({
-                  selectedToken: undefined,
-                  amount: "",
-                  toAddress: "",
-                });
-              } catch (error) {
-              } finally {
-                setLocalDisable(false);
-                localStorage.setItem("localDisable", "false");
-              }
-            }}
+            onClick={handleSend}
             className="group/tooltip rounded-full mt-2 self-center  "
           >
             <div className="bg-background flex justify-center shadow-fuller text-text shadow-shadow nohover:shadow-accent nohover:text-accent hover:shadow-accent  hover:text-accent min-w-[100px] rounded-full p-2">
@@ -167,7 +140,6 @@ const SendTokens = ({
               )}
             </div>
             {
-              
               <Tooltip
                 isHidden={pendingState.isTxDisabled || localDisable}
                 text={
