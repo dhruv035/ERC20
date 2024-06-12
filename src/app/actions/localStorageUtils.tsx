@@ -2,30 +2,32 @@ export const addToken = (address: string) => {
   const tokensArray = localStorage.getItem("tokensBook");
   if (!tokensArray || tokensArray === "") {
     localStorage.setItem("tokensBook", JSON.stringify([address]));
+    return [address];
   } else {
     const parsed: Array<string> = JSON.parse(tokensArray);
     parsed.push(address);
     localStorage.setItem("tokensBook", JSON.stringify(parsed));
+    return parsed;
   }
 };
 
-export const removeToken = (index: number) => {
+export const removeToken = (address: string) => {
   const tokensArray = localStorage.getItem("tokensBook");
   if (!tokensArray) return;
 
   const parsed: Array<string> = JSON.parse(tokensArray);
-  if(!parsed.length){
+  if (!parsed.length) {
     throw Error("Array empty");
-  }
-  else if(parsed.length===1) {
+  } else if (parsed.length === 1) {
     localStorage.removeItem("tokensBook");
+    return [];
+  } else {
+    const indexOf = parsed.indexOf(address);
+    parsed.splice(indexOf, 1);
+    localStorage.setItem("tokensBook", JSON.stringify(parsed));
   }
-  else{
-    parsed.splice(index, 1);
-  localStorage.setItem("tokensBook", JSON.stringify(parsed));}
+  return parsed;
 };
-
-
 
 export const addAddress = (address: string) => {
   const addressArray = localStorage.getItem("addressBook");
@@ -49,13 +51,12 @@ export const removeAddress = (index: number) => {
 
 export const unsetAddressBook = () => {
   localStorage.removeItem("tokensArray");
-}
+};
 
+export const setPendingHash = (hash: string) => {
+  localStorage.setItem("pendingTx", hash);
+};
 
-export const setPendingHash = (hash:string) =>{
-localStorage.setItem("pendingTx",hash);
-}
-
-export const unsetPendingHash = () =>{
-localStorage.removeItem("pendingTx");
-}
+export const unsetPendingHash = () => {
+  localStorage.removeItem("pendingTx");
+};

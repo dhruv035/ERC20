@@ -31,26 +31,26 @@ const Toast = ({
         translateX: 100,
         transition: { duration: 0.3 },
       }}
-      className={`relative rounded-2xl p-4 overflow-hidden text-start min-w-[200px] max-w-[100%] md:max-w-[600px] ${
+      className={`relative min-w-[200px] max-w-[100%] overflow-hidden rounded-2xl p-4 text-start md:max-w-[600px] ${
         toast.type === ToastTypes.ALERT
           ? "bg-yellow-400"
           : toast.type === ToastTypes.ERROR
-          ? "bg-red-400"
-          : toast.type === ToastTypes.SUCCESS
-          ? "bg-green-400"
-          : "bg-gray-400"
+            ? "bg-red-400"
+            : toast.type === ToastTypes.SUCCESS
+              ? "bg-green-400"
+              : "bg-gray-400"
       }`}
     >
       <div className="flex flex-row-reverse">
         <button
           onClick={() => close(toast.id)}
-          className="ml-4 top-2 right-2 p-1 rounded-lg bg-gray-200/20 text-gray-800/60"
+          className="right-2 top-2 ml-4 rounded-lg bg-gray-200/20 p-1 text-gray-800/60"
         >
           X
         </button>
-        <div className="text-xl w-full font-bold underline">{toast.title}</div>
+        <div className="w-full text-xl font-bold underline">{toast.title}</div>
       </div>
-      <div className="text-sm hyphens-auto">{toast.message}</div>
+      <div className="hyphens-auto text-sm">{toast.message}</div>
       {toast.url && toast.urlText && (
         <a href={toast.url} target="_blank" className="underline">
           {toast.urlText}

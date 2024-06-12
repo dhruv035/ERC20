@@ -16,13 +16,13 @@ export type ToastContextType = {
       url?: string;
       urlText?: string;
     },
-    timeout: number
+    timeout: number,
   ) => void;
   close: (id: number) => void;
 };
 
 export const ToastContext = createContext<ToastContextType>(
-  {} as ToastContextType
+  {} as ToastContextType,
 );
 
 //Custom Toast Implementation for the UI
@@ -37,7 +37,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
       url?: string;
       urlText?: string;
     },
-    timeout = 5000
+    timeout = 5000,
   ) => {
     const id = Date.now();
 
@@ -54,21 +54,21 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
         url?: string;
         urlText?: string;
       },
-      timeout: number
+      timeout: number,
     ) => void
   >();
   openRef.current = open;
 
   const close = (id: number) => {
     setToasts((toasts: any) =>
-      toasts.filter((toast: ToastData) => toast.id !== id)
+      toasts.filter((toast: ToastData) => toast.id !== id),
     );
   };
 
   return (
-    <ToastContext.Provider value={{ open:openRef.current, close }}>
+    <ToastContext.Provider value={{ open: openRef.current, close }}>
       {children}
-      <div className="flex flex-col space-y-2 max-w-[90%]  absolute top-20 z-[10] right-4 pl-10 overflow-hidden">
+      <div className="absolute right-4 top-20 z-[10] flex max-w-[90%] flex-col space-y-2 overflow-hidden pl-10">
         <AnimatePresence>
           {toasts.map((toast: ToastData) => (
             <Toast key={toast.id} toast={toast} close={close} />

@@ -28,8 +28,8 @@ input[type="number"] {
 }
 
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /*
@@ -37,40 +37,38 @@ dark/light theme colors, add light color in root class and dark version in .dark
 */
 @layer base {
   :root {
-    
-    --accent-base:rgb(0, 125, 7);
-    --accent:var(--accent-base);
-    --base-green:rgb(156, 236, 6);
+    --accent-base: rgb(0, 125, 7);
+    --accent: var(--accent-base);
+    --base-green: rgb(156, 236, 6);
     --bg: white;
-    --text:black;
-    --text-base:black;
+    --text: black;
+    --text-base: black;
     --slider: rgb(209, 208, 208);
     --navbar: rgb(6, 5, 19);
     --modal: rgb(238, 238, 238);
-    
-    --shadow:rgb(201, 201, 201);
+
+    --shadow: rgb(201, 201, 201);
     & :disabled {
-      --text:rgb(168, 168, 168);
-      --accent:rgb(168, 168, 168);
-      --shadow:rgb(168, 168, 168);
+      --text: rgb(168, 168, 168);
+      --accent: rgb(168, 168, 168);
+      --shadow: rgb(168, 168, 168);
     }
   }
 
   .dark {
-    --accent-base:rgb(156, 236, 6);
+    --accent-base: rgb(156, 236, 6);
     --bg: black;
     --text: white;
-    --text-base:white;
+    --text-base: white;
     --slider: white;
     --navbar: rgb(3, 2, 17);
     --modal: rgb(1, 1, 21);
-    --accent:var(--accent-base);
-    --shadow:rgb(75,85,99);
+    --accent: var(--accent-base);
+    --shadow: rgb(75, 85, 99);
     & :disabled {
-      --text:rgb(75,85,99);
-      --accent:rgb(75,85,99);
-      --shadow:rgb(75,85,99);
+      --text: rgb(75, 85, 99);
+      --accent: rgb(75, 85, 99);
+      --shadow: rgb(75, 85, 99);
+    }
   }
-  }
-  
 }

@@ -48,7 +48,7 @@ const SendTokens = ({
       await sendTokens(
         formData.selectedToken,
         formData.toAddress as `0x${string}`,
-        formData.amount
+        formData.amount,
       );
       setFormData({
         selectedToken: undefined,
@@ -77,7 +77,7 @@ const SendTokens = ({
 
   return (
     <div>
-      <p className="my-4 text-2xl text-accent text-center">
+      <p className="my-4 text-center text-2xl text-accent">
         Send ERC-20 Tokens
       </p>
       {
@@ -90,13 +90,13 @@ const SendTokens = ({
             setToken={setToken}
           />
           <div
-            className={`my-4 p-[1px] text-accent bg-accent rounded-2xl ${
+            className={`my-4 rounded-2xl bg-accent p-[1px] text-accent ${
               formData.selectedToken ? "" : "bg-gray-400"
             }`}
           >
-            <div className="group flex rounded-2xl flex-col p-2 bg-background">
+            <div className="group flex flex-col rounded-2xl bg-background p-2">
               <p
-                className={`transition ease-in-out origin-left font-bold text-accent group-focus-within:scale-[0.75] ${
+                className={`origin-left font-bold text-accent transition ease-in-out group-focus-within:scale-[0.75] ${
                   formData.selectedToken ? "" : "text-gray-400"
                 }`}
               >
@@ -106,7 +106,7 @@ const SendTokens = ({
                 placeholder="Enter Receiver's Address"
                 value={formData.toAddress}
                 disabled={formData.selectedToken ? false : true}
-                className={`text-xl text-accent border-2px border-white w-fit bg-transparent `}
+                className={`border-2px w-fit border-white bg-transparent text-xl text-accent`}
                 onChange={(e) => {
                   setFormData((prevState) => {
                     return {
@@ -126,9 +126,9 @@ const SendTokens = ({
               !formData.selectedToken
             }
             onClick={handleSend}
-            className="group/tooltip rounded-full mt-2 self-center  "
+            className="group/tooltip mt-2 self-center rounded-full"
           >
-            <div className="bg-background flex justify-center shadow-fuller text-text shadow-shadow nohover:shadow-accent nohover:text-accent hover:shadow-accent  hover:text-accent min-w-[100px] rounded-full p-2">
+            <div className="flex min-w-[100px] justify-center rounded-full bg-background p-2 text-text shadow-fuller shadow-shadow hover:text-accent hover:shadow-accent nohover:text-accent nohover:shadow-accent">
               {pendingState.isTxDisabled || localDisable ? (
                 <Spinner />
               ) : (
@@ -146,8 +146,8 @@ const SendTokens = ({
                   localDisable
                     ? "Sending Transaction"
                     : pendingState.isTxDisabled
-                    ? "Network busy"
-                    : "Select a token first"
+                      ? "Network busy"
+                      : "Select a token first"
                 }
               />
             }

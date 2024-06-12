@@ -30,7 +30,7 @@ export type FormData = {
 
 const Home = () => {
   const [isSendTab, setIsSendTab] = useState<boolean>(false);
-  const { address, blockNumber,chain } = useChainContext();
+  const { address, blockNumber, chain } = useChainContext();
   const { getTokenData, fetchStates } = useAlchemyHooks();
 
   const [formData, setFormData] = useState<FormData>({
@@ -38,14 +38,13 @@ const Home = () => {
     toAddress: "",
     amount: "",
   });
-  
+
   useEffect(() => {
     if (!address) {
       setIsSendTab(false);
       return;
     }
   }, [address]);
-
 
   useEffect(() => {
     setFormData((prevState) => ({ ...prevState, amount: "" }));
@@ -57,7 +56,7 @@ const Home = () => {
       amount: "",
       selectedToken: undefined,
     }));
-  }, [address,chain]);
+  }, [address, chain]);
 
   useEffect(() => {
     if (!formData.selectedToken?.address) return;
@@ -65,10 +64,10 @@ const Home = () => {
     getTokenData(formData.selectedToken.address).then((data) => {
       setFormData((prevState) => ({ ...prevState, selectedToken: data }));
     });
-  }, [formData.selectedToken?.address,blockNumber, getTokenData]);
+  }, [formData.selectedToken?.address, blockNumber, getTokenData]);
 
   return (
-    <div className="flex flex-col w-full min-h-[92vh] md:min-h-[90vh] items-center px-8">
+    <div className="flex min-h-[92vh] w-full flex-col items-center px-8 md:min-h-[90vh]">
       <AnimatePresence>
         <m.div
           key="pendingTx"
@@ -79,18 +78,18 @@ const Home = () => {
           <PendingTransaction />
         </m.div>
       </AnimatePresence>
-      <div className=" shadow-fuller shadow-accent bg-[rgba(255,255,255,0.04)] min-h-96 w-full max-w-[400px] text-accent rounded-[10px] p-2 my-4 overflow-hidden">
-        <div className="grid grid-cols-2 text-text text-center">
+      <div className="my-4 min-h-96 w-full max-w-[400px] overflow-hidden rounded-[10px] bg-[rgba(255,255,255,0.04)] p-2 text-accent shadow-fuller shadow-accent">
+        <div className="grid grid-cols-2 text-center text-text">
           <button
             onClick={() => {
               setIsSendTab(true);
             }}
             disabled={typeof address === "undefined"}
-            className={`group/tooltip p-2 text-nowrap rounded-t-xl border-accent border-[1.5px] bg-transparent border-b-0  ${
+            className={`group/tooltip text-nowrap rounded-t-xl border-[1.5px] border-b-0 border-accent bg-transparent p-2 ${
               !isSendTab
-                ? "z-[1] shadow-fuller shadow-accent text-accent "
+                ? "z-[1] text-accent shadow-fuller shadow-accent"
                 : "text-text"
-            }  `}
+            } `}
           >
             Send Tokens
             {
@@ -104,9 +103,9 @@ const Home = () => {
             onClick={() => {
               setIsSendTab(false);
             }}
-            className={`p-2 pb-0 text-nowrap rounded-t-xl border-[1.5px] bg-transparent border-accent border-b-0 -ml-[1px]  ${
+            className={`-ml-[1px] text-nowrap rounded-t-xl border-[1.5px] border-b-0 border-accent bg-transparent p-2 pb-0 ${
               isSendTab
-                ? "z-[1] shadow-fuller shadow-accent text-accent "
+                ? "z-[1] text-accent shadow-fuller shadow-accent"
                 : "text-text"
             }`}
           >
@@ -129,7 +128,11 @@ const Home = () => {
                 transition: { duration: 0.1 },
               }}
             >
-              <SendTokens formData={formData} setFormData={setFormData} isUpdating={fetchStates.tokenData}/>
+              <SendTokens
+                formData={formData}
+                setFormData={setFormData}
+                isUpdating={fetchStates.tokenData}
+              />
             </m.div>
           ) : (
             <m.div

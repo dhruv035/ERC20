@@ -5,28 +5,27 @@ const Accordion = ({
   isOpen,
   setIsOpen,
   header,
-  children
+  children,
 }: {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   header: string;
-  children:React.ReactNode
-
+  children: React.ReactNode;
 }) => {
   return (
     <div
-      className={`flex rounded-2xl flex-col p-4 bg-background border-accent border-2`}
+      className={`flex flex-col rounded-2xl border-2 border-accent bg-background p-4`}
     >
       <div
         onClick={(e) => {
           setIsOpen((prevState) => !prevState);
         }}
-        className=" flex flex-row hover:cursor-pointer"
+        className="flex flex-row hover:cursor-pointer"
       >
         <p className="text-nowrap text-accent">{header}</p>
-        <div className="flex flex-row-reverse w-full">
+        <div className="flex w-full flex-row-reverse">
           <MdOutlineKeyboardArrowDown
-            className={`transition-all duration-800 origin-center ${
+            className={`duration-800 origin-center transition-all ${
               isOpen ? "" : "rotate-90"
             }`}
           />

@@ -47,7 +47,7 @@ const useERC20 = () => {
                 url: chain?.blockExplorers?.default?.url + `/tx/${hash}`,
                 urlText: "View in Explorer",
               },
-              6000
+              6000,
             );
             setPendingState((prevState) => ({
               ...prevState,
@@ -58,10 +58,10 @@ const useERC20 = () => {
             blockRef.current &&
               localStorage.setItem(
                 "pendingTxBlock",
-                blockRef.current.toString()
+                blockRef.current.toString(),
               );
           },
-        }
+        },
       );
     } catch (error) {}
   };
@@ -97,7 +97,7 @@ const useERC20 = () => {
               `/tx/${pendingState.pendingTx}`,
             urlText: "View in Explorer",
           },
-          6000
+          6000,
         );
         setPendingState((prevState) => ({
           ...prevState,
@@ -107,7 +107,7 @@ const useERC20 = () => {
         localStorage.setItem("pendingTx", hash);
         localStorage.setItem(
           "pendingBlock",
-          blockRef.current ? blockRef.current.toString() : ""
+          blockRef.current ? blockRef.current.toString() : "",
         );
       } catch (error: any) {
         const e = error as TransactionExecutionErrorType;
@@ -117,9 +117,9 @@ const useERC20 = () => {
             type: ToastTypes.ERROR,
             message: e.shortMessage,
           },
-          6000
+          6000,
         );
-        throw e
+        throw e;
       }
     },
     [
@@ -129,7 +129,7 @@ const useERC20 = () => {
       openToast,
       pendingState.pendingTx,
       setPendingState,
-    ]
+    ],
   );
 
   return {

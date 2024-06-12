@@ -1,22 +1,17 @@
 "use  client";
 import { NextPage } from "next";
-import {
-  ReactNode,
-  createContext,
-  useEffect,
-  useState,
-} from "react";
-import {
-  useBlockNumber,
-} from "wagmi";
+import { ReactNode, createContext, useEffect, useState } from "react";
+import { useBlockNumber } from "wagmi";
 
 //Timer was seperated out to avoid re-renders of other components in chain,
 
 export type TimerContextType = {
-  timer:number,
+  timer: number;
 };
 
-export const TimerContext = createContext<TimerContextType>({} as TimerContextType);
+export const TimerContext = createContext<TimerContextType>(
+  {} as TimerContextType,
+);
 
 const TimerProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
   const [timer, setTimer] = useState(0);
@@ -24,10 +19,10 @@ const TimerProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
   //Inv
   const blockNumber = useBlockNumber({
     watch: true,
-    query:{
-      staleTime:1_000,
-      refetchInterval:1_000,
-    }
+    query: {
+      staleTime: 1_000,
+      refetchInterval: 1_000,
+    },
   });
 
   //Block Countdown
@@ -47,7 +42,6 @@ const TimerProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     if (!blockNumber.data) return;
     setTimer(12);
-
   }, [blockNumber.data]);
 
   return (

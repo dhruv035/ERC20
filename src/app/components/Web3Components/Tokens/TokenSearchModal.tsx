@@ -6,13 +6,12 @@ import {
   useMemo,
   useState,
 } from "react";
-import { MetaData, TokenData } from "../../../page";
+import { TokenData } from "../../../page";
 import Image from "next/image";
 import Input from "../../BaseComponents/Input";
 import { isAddress } from "viem";
 import Modal from "../../BaseComponents/Modal";
-import { useChainContext } from "@/app/context/RootContext";
-import { addToken } from "@/app/actions/localStorageUtils";
+import { addToken, removeToken } from "@/app/actions/localStorageUtils";
 import { Spinner } from "../../BaseComponents";
 import useAlchemyHooks from "@/app/actions/useAlchemyHooks";
 import { shortenHash } from "@/app/actions/utils";
@@ -38,10 +37,12 @@ const TokenSearchModal = ({
   const [isCustom, setIsCustom] = useState<boolean>(false);
   const [customToken, setCustomToken] = useState<TokenData | undefined>();
   const { address } = useAccount();
-  const {data:blockNumber} = useBlockNumber({query:{
-    refetchInterval:6_000,
-    staleTime:5_000
-  }});
+  const { data: blockNumber } = useBlockNumber({
+    query: {
+      refetchInterval: 6_000,
+      staleTime: 5_000,
+    },
+  });
   const [copiedAddress, setCopiedAddress] = useState<string>("");
 
   const {
@@ -54,7 +55,7 @@ const TokenSearchModal = ({
   const [importedTokens, setImportedTokens] = useState<TokenData[]>();
   const [importedTokensArray, setImportedTokensArray] = useState<string[]>();
 
-  console.log("importedTokensArray",importedTokensArray)
+  console.log("importedTokensArray", importedTokensArray);
   const filteredTokens = useMemo(() => {
     if (!tokens) return [] as TokenData[];
     if (input === "") return tokens;
@@ -86,10 +87,10 @@ const TokenSearchModal = ({
 
   useEffect(() => {
     if (importedTokensArray) {
-      if(importedTokensArray.length>0)
-      getTokenDataArray(importedTokensArray).then((data) =>
-        setImportedTokens(data)
-      );
+      if (importedTokensArray.length > 0)
+        getTokenDataArray(importedTokensArray).then((data) =>
+          setImportedTokens(data),
+        );
       else setImportedTokens([]);
       //Fetch data for imported tokens, alchemy hook getTokensArray
     } else if (importedTokensLocal && importedTokensLocal.length > 0) {
@@ -115,19 +116,16 @@ const TokenSearchModal = ({
 
   const handleImport = useCallback(async () => {
     if (!customToken) return;
-    addToken(input);
-    setImportedTokensArray((prevState) => {
-      const arr = !prevState?[input]:[...prevState,input];
-      localStorage.setItem("tokensBook",JSON.stringify(arr));
-      return arr;
-    });
-    setIsCustom(false)
+    const arr = addToken(input);
+    setImportedTokensArray(arr);
+    setIsCustom(false);
+    setInput("");
   }, [input, customToken]);
 
   const isValid = useMemo<boolean>(() => {
     if (!isCustom) return false;
     return isAddress(input);
-  }, [input, isCustom]);
+  }, [input]);
   useEffect(() => {
     if (!isCustom) return;
     if (!isValid) {
@@ -149,8 +147,7 @@ const TokenSearchModal = ({
       setImportedTokensArray(importedTokens);
     }
   }, []);
-  console.log("FILTERED TOKENS", filteredTokens);
-  
+
   useEffect(() => {
     addEventListener("storage", handleStorageUpdate);
     return () => {
@@ -159,9 +156,9 @@ const TokenSearchModal = ({
   }, [handleStorageUpdate]);
   return (
     <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
-      <p className="text-2xl text-white mt-4">Select a Token</p>
+      <p className="mt-4 text-2xl text-white">Select a Token</p>
       <div className="flex flex-row">
-        <p className="transition ease-in-out w-full mr-4 sm:w-fit origin-left font-bold text-accent ">
+        <p className="mr-4 w-full origin-left font-bold text-accent transition ease-in-out sm:w-fit">
           Import custom token
         </p>
 
@@ -178,7 +175,7 @@ const TokenSearchModal = ({
       {isCustom ? (
         <div className="flex flex-col items-center">
           <Input
-            className="placeholder-gray-700 placeholder:italic text-black"
+            className="text-black placeholder-gray-700 placeholder:italic"
             boxClassName="items-center"
             placeholder="Enter token Address"
             value={input}
@@ -186,20 +183,16 @@ const TokenSearchModal = ({
           />
 
           <button
-            disabled={!isValid}
+            disabled={!isValid || fetchStates.tokenData}
             onClick={(e) => {
               handleImport();
             }}
-            className={`border-[1px] border-background hover:border-accent mr-1 sm:mr-4 flex flex-row bg-background p-1 sm:p-2 rounded-full text-xs w-full 
-                    items-center max-w-[90px] nohover:text-accent nohover:shadow-accent whitespace-nowrap shadow-fuller mb-4 
-                    hover:shadow-accent  hover:text-accent ${
-                      selectedToken ? " shadow-accent" : "italic shadow-shadow"
-                    }`}
+            className={`mb-4 mr-1 flex w-full max-w-[90px] flex-row items-center whitespace-nowrap rounded-full border-[1px] border-background bg-background p-1 text-xs text-text shadow-fuller shadow-shadow enabled:hover:border-accent enabled:hover:text-accent enabled:hover:shadow-accent sm:mr-4 sm:p-2 nohover:text-accent nohover:shadow-accent`}
           >
             {"Import token"}
           </button>
           {fetchStates.tokenData && <Spinner />}
-
+          {/*className={`flex flex-row w-full max-w-[90px] mr-1 mb-4 p-1 rounded-full border-[1px] border-background sm:p-2 sm:mr-4 items-center bg-background shadow-shadow shadow-fuller text-text text-xs whitespace-nowrap enabled:hover:border-accent enabled:hover:shadow-accent enabled:hover:text-accent nohover:text-accent nohover:shadow-accent`} */}
           {
             //Show metaData here
             customToken && (
@@ -227,9 +220,9 @@ const TokenSearchModal = ({
           }
         </div>
       ) : (
-        <div className="w-7/12 flex flex-col items-center ">
+        <div className="flex w-7/12 flex-col items-center">
           <Input
-            className="placeholder-gray-700 placeholder:italic text-black"
+            className="text-black placeholder-gray-700 placeholder:italic"
             boxClassName="items-center"
             placeholder="Search token"
             value={input}
@@ -239,14 +232,13 @@ const TokenSearchModal = ({
           {!initializeStates.allTokenData ? (
             <Spinner />
           ) : (
-            <ul className=" flex bg-transparent h-fit max-h-[200px] w-full rounded-2xl justify-center overflow-scroll no-scrollbar border-white border-[1px]">
-              <div className="flex flex-col rounded-2xl w-full max-w-96">
+            <ul className="no-scrollbar flex h-fit max-h-[200px] w-full justify-center overflow-scroll rounded-2xl border-[1px] border-white bg-transparent">
+              <div className="flex w-full max-w-96 flex-col rounded-2xl">
                 {importedTokens &&
                   importedTokens.map((token: TokenData, index: number) => {
-                    console.log("ATOKEN",index,token)
                     return (
                       <li
-                        className="flex first:rounded-t-2xl flex-row p-2 items-center bg-transparent hover:bg-background hover:cursor-pointer last:rounded-b-2xl"
+                        className="flex flex-row items-center bg-transparent p-2 first:rounded-t-2xl last:rounded-b-2xl hover:cursor-pointer hover:bg-background"
                         key={index}
                         onClick={(e) => {
                           setIsOpen(false);
@@ -266,21 +258,34 @@ const TokenSearchModal = ({
                           width={30}
                           height={30}
                         ></Image>
-                        <div className="flex flex-col w-full">
+                        <div className="flex w-full flex-col">
                           <div className="flex flex-row">
-                            <p className="whitespace-nowrap">
-                              {token.metaData?.name}
-                            </p>
-                            <div className="w-full flex flex-row-reverse">
-                              Imported
+                            <div className="flex flex-row whitespace-nowrap">
+                              {token.metaData?.name}{" "}
+                              <p className="ml-2 justify-center border-[1px] border-gray-400 bg-transparent px-1 text-xs text-gray-400">
+                                Imported
+                              </p>
+                            </div>
+                            <div className="flex w-full flex-row-reverse">
+                              <button
+                                className="ml-2 text-red-400"
+                                onClick={(e) => {
+                                  console.log("HEREPREVSTATE");
+                                  e.stopPropagation();
+                                  const data = removeToken(token.address);
+                                  setImportedTokensArray(data);
+                                }}
+                              >
+                                X
+                              </button>
                             </div>
                           </div>
-                          <div className="group/tooltip flex flex-row items-center text-sm font-600">
+                          <div className="font-600 group flex flex-row items-center text-sm">
                             Address:{" "}
-                            <p className="text-accent mr-4">
+                            <p className="mr-4 text-accent">
                               {shortenHash(token.address)}
                             </p>
-                            <div className="flex flex-row-reverse w-full">
+                            <div className="flex w-full flex-row-reverse">
                               {copiedAddress === token.address ? (
                                 <LuCopyCheck
                                   size={14}
@@ -289,7 +294,7 @@ const TokenSearchModal = ({
                                     e.stopPropagation();
                                     e.preventDefault();
                                     navigator.clipboard.writeText(
-                                      token.address
+                                      token.address,
                                     );
                                     setCopiedAddress(token.address);
                                   }}
@@ -302,21 +307,15 @@ const TokenSearchModal = ({
                                     e.stopPropagation();
                                     e.preventDefault();
                                     navigator.clipboard.writeText(
-                                      token.address
+                                      token.address,
                                     );
                                     setCopiedAddress(token.address);
                                   }}
                                 />
                               )}
                             </div>
-                            <Tooltip
-                              isHidden={true}
-                              text={token.address}
-                              className="-translate-y-10 p-2"
-                              innerClassName=" md:p-2"
-                            />
                           </div>
-                          <div className="flex flex-row text-sm font-600">
+                          <div className="font-600 flex flex-row text-sm">
                             Balance:{" "}
                             <p
                               className={`${
@@ -333,10 +332,9 @@ const TokenSearchModal = ({
                     );
                   })}
                 {filteredTokens.map((token: TokenData, index: number) => {
-                   console.log("ATOKEN",index,token)
                   return (
                     <li
-                      className="flex first:rounded-t-2xl flex-row p-2 items-center bg-transparent hover:bg-background hover:cursor-pointer last:rounded-b-2xl"
+                      className="flex flex-row items-center bg-transparent p-2 first:rounded-t-2xl last:rounded-b-2xl hover:cursor-pointer hover:bg-background"
                       key={index}
                       onClick={(e) => {
                         setIsOpen(false);
@@ -354,16 +352,16 @@ const TokenSearchModal = ({
                         width={30}
                         height={30}
                       ></Image>
-                      <div className="flex flex-col w-full">
+                      <div className="flex w-full flex-col">
                         <p className="whitespace-nowrap">
                           {token.metaData.name}
                         </p>
-                        <div className="group/tooltip flex flex-row items-center text-sm font-600">
+                        <div className="font-600 group flex flex-row items-center text-sm">
                           Address:{" "}
-                          <p className="text-accent mr-4">
+                          <p className="mr-4 text-accent">
                             {shortenHash(token.address)}
                           </p>
-                          <div className="flex flex-row-reverse w-full">
+                          <div className="flex w-full flex-row-reverse">
                             {copiedAddress === token.address ? (
                               <LuCopyCheck
                                 size={14}
@@ -388,14 +386,8 @@ const TokenSearchModal = ({
                               />
                             )}
                           </div>
-                          <Tooltip
-                            isHidden={true}
-                            text={token.address}
-                            className="-translate-y-10 p-2"
-                            innerClassName=" md:p-2"
-                          />
                         </div>
-                        <div className="flex flex-row text-sm font-600">
+                        <div className="font-600 flex flex-row text-sm">
                           Balance:{" "}
                           <p
                             className={`${

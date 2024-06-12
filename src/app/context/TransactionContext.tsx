@@ -44,7 +44,7 @@ export type Deployment = {
   j2?: string;
 };
 export const TransactionContext = createContext<TransactionContextType>(
-  {} as TransactionContextType
+  {} as TransactionContextType,
 );
 const TransactionProvider = ({ children }: { children: ReactNode }) => {
   const { open: openToast } = useToast();
@@ -58,7 +58,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
         url?: string | undefined;
         urlText?: string | undefined;
       },
-      timeout: number
+      timeout: number,
     ) => void
   >();
   openRef.current = openToast;
@@ -103,7 +103,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
           chain?.blockExplorers?.default?.url + `/tx/${pendingState.pendingTx}`,
         urlText: "View in Explorer",
       },
-      8000
+      8000,
     );
     setPendingState({ isTxDisabled: false } as PendingState);
     localStorage.setItem("pendingTx", "");
@@ -118,7 +118,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
           type: ToastTypes.ERROR,
           message: "Transaction Failed",
         },
-        6000
+        6000,
       );
     else
       openToast(
@@ -127,7 +127,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
           type: ToastTypes.ERROR,
           message: error.message,
         },
-        6000
+        6000,
       );
   }, [openToast, error]);
 
@@ -167,9 +167,14 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
                 urlText: "View in Explorer",
                 url: `https://etherscan.com/tx/${event.newValue}`,
               },
-              6000
+              6000,
             );
         }
+      } else if (event.key === "pendingBlock") {
+        setPendingState((prevState) => ({
+          ...prevState,
+          pendingTxBlock: BigInt(event.newValue ?? ""),
+        }));
       }
     };
     addEventListener("storage", handleStorage);

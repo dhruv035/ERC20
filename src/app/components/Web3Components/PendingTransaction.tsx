@@ -1,36 +1,40 @@
 import { formatGwei } from "viem";
-import { useChainContext, useTimerContext, useTransactionContext } from "@/app/context/RootContext";
+import {
+  useChainContext,
+  useTimerContext,
+  useTransactionContext,
+} from "@/app/context/RootContext";
 import useERC20 from "@/app/actions/erc20Hooks";
 
 const PendingTransaction = () => {
   const { chain, gasPrice, blockNumber } = useChainContext();
-  const {timer} = useTimerContext();
+  const { timer } = useTimerContext();
   const { pendingState } = useTransactionContext();
-  const {sendReplace} = useERC20();
+  const { sendReplace } = useERC20();
 
   const { pendingTx, pendingTxBlock, maxFee, maxPriorityFee } = pendingState;
   if (pendingTx)
     return (
-      <div className=" shadow-fuller shadow-accent bg-[rgba(255,255,255,0.04)] w-full max-w-[400px] text-accent rounded-[10px] p-4 my-8">
-        <p className="mb-4 text-2xl text-accent text-center overflow-hidden">
+      <div className="my-8 w-full max-w-[400px] rounded-[10px] bg-[rgba(255,255,255,0.04)] p-4 text-accent shadow-fuller shadow-accent">
+        <p className="mb-4 overflow-hidden text-center text-2xl text-accent">
           You have a pending Transaction
         </p>
-        <div className="text-center text-text flex flex-row justify-center">
+        <div className="flex flex-row justify-center text-center text-text">
           Current Block :{" "}
           <p className="text-accent">{blockNumber?.toString()}</p>
         </div>
-        <div className="text-center text-text flex flex-row justify-center">
+        <div className="flex flex-row justify-center text-center text-text">
           Next Block in : <p className="text-accent">{timer}</p>
         </div>
 
-        <div className="text-text overflow-hidden">
+        <div className="overflow-hidden text-text">
           <p className="my-4 text-center text-xl text-accent">
             {" "}
             Pending Tx Details
           </p>
           <p className="break-all">
             Hash:{" "}
-            <u className="transition ease-in-out break-all duration-200 hover:cursor-pointer hover:text-accent">
+            <u className="break-all transition duration-200 ease-in-out hover:cursor-pointer hover:text-accent">
               <a
                 href={
                   chain?.blockExplorers?.default?.url +
@@ -55,7 +59,8 @@ const PendingTransaction = () => {
           </p>
           <div className="flex flex-col items-center text-accent">
             {Number(gasPrice) > Number(maxFee) - Number(maxPriorityFee) ? (
-              <p className=" hover:cursor-pointer hover:underline"
+              <p
+                className="hover:cursor-pointer hover:underline"
                 onClick={() => {
                   sendReplace();
                 }}
@@ -65,14 +70,18 @@ const PendingTransaction = () => {
             ) : blockNumber &&
               pendingTxBlock &&
               Number(blockNumber) - Number(pendingTxBlock) < 3 ? (
-              <p>Transaction should go through in 15-30 seconds {`(1-2 blocks)`}</p>
+              <p>
+                Transaction should go through in 15-30 seconds {`(1-2 blocks)`}
+              </p>
             ) : (
-              <p className=" hover:cursor-pointer hover:underline"
+              <p
+                className="hover:cursor-pointer hover:underline"
                 onClick={() => {
                   sendReplace();
                 }}
               >
-                Transaction seems stuck in the pool, click here to speed up transaction
+                Transaction seems stuck in the pool, click here to speed up
+                transaction
               </p>
             )}
           </div>

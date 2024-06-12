@@ -33,7 +33,7 @@ export type AlchemyContextType = {
   fetchStates: FetchStates;
   initializeStates: FetchStates;
   getMetaData: (
-    tokenAddress: string
+    tokenAddress: string,
   ) => Promise<TokenMetadataResponse | undefined>;
   getTokenData: (tokenAddress: string) => Promise<TokenData | undefined>;
   getAllTokenData: () => Promise<TokenData[] | undefined>;
@@ -42,11 +42,11 @@ export type AlchemyContextType = {
 };
 
 export const AlchemyContext = createContext<AlchemyContextType>(
-  {} as AlchemyContextType
+  {} as AlchemyContextType,
 );
 
 const useAlchemyHooks = () => {
-  const {address, chain} = useAccount();
+  const { address, chain } = useAccount();
 
   const [fetchStates, setFetchStates] = useState<FetchStates>({
     metaData: false,
@@ -110,7 +110,7 @@ const useAlchemyHooks = () => {
       }
       return response;
     },
-    [alchemy]
+    [alchemy],
   );
   const resetInitializeStates = () => {
     setInitializeStates({
@@ -134,22 +134,24 @@ const useAlchemyHooks = () => {
       setFetchState("tokenDataArray", true);
       const res = await alchemy.core.getTokenBalances(
         address as string,
-        tokenAddresses
+        tokenAddresses,
       );
 
       const tokensData: Array<TokenData> = await Promise.all(
         res.tokenBalances.map(async (token) => {
-          const metaData = await alchemy.core.getTokenMetadata(token.contractAddress);
+          const metaData = await alchemy.core.getTokenMetadata(
+            token.contractAddress,
+          );
           const balance = formatUnits(
             hexToBigInt(token.tokenBalance as `0x${string}`),
-            metaData.decimals ?? 9
+            metaData.decimals ?? 9,
           );
           return {
             metaData,
             address: token.contractAddress,
             balance,
           } as TokenData;
-        })
+        }),
       );
       setFetchState("tokenDataArray", false);
       if (initializeRef.current?.tokenData === false) {
@@ -157,27 +159,24 @@ const useAlchemyHooks = () => {
       }
       return tokensData;
     },
-    [alchemy, address]
+    [alchemy, address],
   );
   const getTokenData = useCallback(
     async (tokenAddress: string) => {
       if (fetchRef.current?.tokenData === true) {
         return;
       }
-      const metaData = await alchemy.core.getTokenMetadata(tokenAddress);
-
       setFetchState("tokenData", true);
+      const metaData = await alchemy.core.getTokenMetadata(tokenAddress);
       const addresses = [tokenAddress];
       const res = await alchemy.core.getTokenBalances(
         address as string,
-        addresses
+        addresses,
       );
-
       const response = res.tokenBalances[0];
-
       const balance = formatUnits(
         hexToBigInt(response.tokenBalance as `0x${string}`),
-        metaData.decimals ?? 9
+        metaData.decimals ?? 9,
       );
       const tokenData = {
         metaData,
@@ -190,7 +189,7 @@ const useAlchemyHooks = () => {
       }
       return tokenData;
     },
-    [alchemy, address]
+    [alchemy, address],
   );
 
   const getAllTokenData = useCallback(async () => {
@@ -206,20 +205,22 @@ const useAlchemyHooks = () => {
         .filter(
           (token) =>
             token.tokenBalance &&
-            hexToBigInt(token.tokenBalance as `0x${string}`) > 0
+            hexToBigInt(token.tokenBalance as `0x${string}`) > 0,
         )
         .map(async (token) => {
-          const metaData = await alchemy.core.getTokenMetadata(token.contractAddress);
+          const metaData = await alchemy.core.getTokenMetadata(
+            token.contractAddress,
+          );
           const balance = formatUnits(
             hexToBigInt(token.tokenBalance as `0x${string}`),
-            metaData.decimals ?? 6
+            metaData.decimals ?? 6,
           );
           return {
             metaData,
             address: token.contractAddress,
             balance,
           } as TokenData;
-        })
+        }),
     );
 
     setFetchState("allTokenData", false);
@@ -244,7 +245,7 @@ const useAlchemyHooks = () => {
 
       return response ?? undefined;
     },
-    [alchemy]
+    [alchemy],
   );
 
   return {

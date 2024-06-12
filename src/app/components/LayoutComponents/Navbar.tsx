@@ -1,6 +1,6 @@
 "use client";
 import { formatGwei } from "viem";
-import  ConnectButton  from "../Web3Components/ConnectButton";
+import ConnectButton from "../Web3Components/ConnectButton";
 import Toggle from "../BaseComponents/Toggle";
 import { CiLight, CiDark } from "react-icons/ci";
 import { BsFillFuelPumpFill } from "react-icons/bs";
@@ -12,21 +12,29 @@ export default function Navbar({
   isDark: boolean;
   toggle: () => void;
 }) {
-  const {gasPrice} = useChainContext();
-  const formatted = Number(formatGwei(gasPrice??BigInt(0))).toFixed((3));
+  const { gasPrice } = useChainContext();
+  const formatted = Number(formatGwei(gasPrice ?? BigInt(0))).toFixed(3);
   return (
-    <div className="flex h-[8vh] md:h-[10vh] flex-row py-4 items-center bg-navbar">
+    <div className="flex h-[8vh] flex-row items-center bg-navbar py-4 md:h-[10vh]">
       <p
         style={{ fontWeight: 900 }}
-        className={`ml-6 text-xl text-white xs:text-3xl sm:text-4xl md:text-6xl whitespace-nowrap font-100 text-center font-honk`}
+        className={`font-100 ml-6 whitespace-nowrap text-center font-honk text-xl text-white xs:text-3xl sm:text-4xl md:text-6xl`}
       >
         Send iT
       </p>
-      <BsFillFuelPumpFill className="ml-2 w-[20px] sm:w-6 md:w-8  text-white"/>
-      <p className="text-white text-xs text-nowrap xs:text-sm md:text-lg mx-[2px]">{formatted} Gwei</p>
-      <div className="items-center w-full mr-4 flex flex-row-reverse">
-        <ConnectButton/>
-        <Toggle isTrue={isDark} toggle={toggle} trueImage={CiDark} falseImage={CiLight} id="LightDarkToggle"/>
+      <BsFillFuelPumpFill className="ml-2 w-[20px] text-white sm:w-6 md:w-8" />
+      <p className="mx-[2px] text-nowrap text-xs text-white xs:text-sm md:text-lg">
+        {formatted} Gwei
+      </p>
+      <div className="mr-4 flex w-full flex-row-reverse items-center">
+        <ConnectButton />
+        <Toggle
+          isTrue={isDark}
+          toggle={toggle}
+          trueImage={CiDark}
+          falseImage={CiLight}
+          id="LightDarkToggle"
+        />
       </div>
     </div>
   );

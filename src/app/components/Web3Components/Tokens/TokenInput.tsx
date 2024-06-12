@@ -26,29 +26,29 @@ const TokenInput = ({
   const ref = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={ref} className="relative overflow-hidden flex flex-col text-text">
+    <div ref={ref} className="relative flex flex-col overflow-hidden text-text">
       {
         <div
-          className={`p-[1px] bg-accent rounded-2xl ${
+          className={`rounded-2xl bg-accent p-[1px] ${
             selectedToken ? "" : "bg-gray-400"
           }`}
         >
           <div
-            className={`flex flex-col overflow-hidden rounded-2xl p-2 bg-background `}
+            className={`flex flex-col overflow-hidden rounded-2xl bg-background p-2`}
           >
-            <div className="flex overflow-hidden flex-row">
+            <div className="flex flex-row overflow-hidden">
               <div className="group w-[70%]">
                 <p
                   className={`${
                     selectedToken ? "" : "text-gray-400"
-                  } transition ease-in-out origin-left font-bold text-accent group-focus-within:scale-[1.25] `}
+                  } origin-left font-bold text-accent transition ease-in-out group-focus-within:scale-[1.25]`}
                 >
                   Amount
                 </p>
                 <Input
                   placeholder="0"
                   type="number"
-                  className={`text-2xl text-accent border-2px border-white w-fit bg-transparent `}
+                  className={`border-2px w-fit border-white bg-transparent text-2xl text-accent`}
                   disabled={selectedToken ? false : true}
                   value={amount}
                   onChange={(e) => {
@@ -58,7 +58,7 @@ const TokenInput = ({
                     console.log(
                       "decimals",
                       decimals,
-                      selectedToken.metaData.decimals
+                      selectedToken.metaData.decimals,
                     );
                     if (Number(e.target.value) < 0) {
                       openToast(
@@ -67,7 +67,7 @@ const TokenInput = ({
                           type: ToastTypes.ERROR,
                           message: `Cannot set amount to negative`,
                         },
-                        6000
+                        6000,
                       );
                       setAmount("0");
                     } else if (selectedToken.metaData.decimals < decimals) {
@@ -77,7 +77,7 @@ const TokenInput = ({
                           type: ToastTypes.ERROR,
                           message: `Token supports only ${selectedToken.metaData.decimals} decimals`,
                         },
-                        6000
+                        6000,
                       );
                       return;
                     } else if (
@@ -90,25 +90,23 @@ const TokenInput = ({
                           type: ToastTypes.ERROR,
                           message: `Amount exceeded balance, amount set to max balance`,
                         },
-                        6000
+                        6000,
                       );
                       setAmount(selectedToken.balance);
                     } else setAmount(e.target.value);
                   }}
                 />
               </div>
-              <div className="flex flex-col w-[30%] items-end my-1">
+              <div className="my-1 flex w-[30%] flex-col items-end">
                 <button
                   onClick={() => {
                     setIsOpen((prevState) => !prevState);
                   }}
-                  className={`border-[1px] border-background hover:border-accent mr-1 sm:mr-4 flex flex-row bg-background p-1 sm:p-2 rounded-full text-xs w-full 
-                    items-center max-w-[90px] nohover:text-accent nohover:shadow-accent whitespace-nowrap shadow-fuller 
-                    hover:shadow-accent  hover:text-accent ${
-                      selectedToken
-                        ? " underline shadow-accent"
-                        : "italic shadow-shadow"
-                    }`}
+                  className={`mr-1 flex w-full max-w-[90px] flex-row items-center whitespace-nowrap rounded-full border-[1px] border-background bg-background p-1 text-xs shadow-fuller hover:border-accent hover:text-accent hover:shadow-accent sm:mr-4 sm:p-2 nohover:text-accent nohover:shadow-accent ${
+                    selectedToken
+                      ? "underline shadow-accent"
+                      : "italic shadow-shadow"
+                  }`}
                 >
                   {selectedToken && (
                     <Image
@@ -135,10 +133,10 @@ const TokenInput = ({
                 </button>
               </div>
             </div>
-            <div className="flex w-full flex-row-reverse whitespace-nowrap items-baseline">
+            <div className="flex w-full flex-row-reverse items-baseline whitespace-nowrap">
               <div
                 className={`flex flex-row text-sm ${
-                  isUpdating ? "text-red-600 animate-pulse-fast" : "text-accent"
+                  isUpdating ? "animate-pulse-fast text-red-600" : "text-accent"
                 } `}
               >
                 <p>Balance:</p> <div>{selectedToken?.balance}</div>
@@ -148,7 +146,7 @@ const TokenInput = ({
                 onClick={(e) => {
                   setAmount(selectedToken?.balance ?? amount);
                 }}
-                className="mr-2 underline text-text hover:text-accent"
+                className="mr-2 text-text underline hover:text-accent"
               >
                 Max
               </button>

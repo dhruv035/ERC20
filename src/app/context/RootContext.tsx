@@ -44,7 +44,7 @@ export const config = getDefaultConfig({
   storage: createStorage({
     storage: cookieStorage,
   }),
-  
+
   ssr: true, //Cookies and SSR to avoid hydration error on nextjs
 });
 export function ContextProvider({
@@ -64,7 +64,7 @@ export function ContextProvider({
             <RainbowKitProvider theme={isDark ? darkTheme() : lightTheme()}>
               <TimerProvider>
                 <ChainProvider>
-                    <TransactionProvider>{children}</TransactionProvider>
+                  <TransactionProvider>{children}</TransactionProvider>
                 </ChainProvider>
               </TimerProvider>
             </RainbowKitProvider>
