@@ -86,9 +86,11 @@ const TokenSearchModal = ({
 
   useEffect(() => {
     if (importedTokensArray) {
+      if(importedTokensArray.length>0)
       getTokenDataArray(importedTokensArray).then((data) =>
         setImportedTokens(data)
       );
+      else setImportedTokens([]);
       //Fetch data for imported tokens, alchemy hook getTokensArray
     } else if (importedTokensLocal && importedTokensLocal.length > 0) {
       setImportedTokensArray(importedTokensLocal);
@@ -119,6 +121,7 @@ const TokenSearchModal = ({
       localStorage.setItem("tokensBook",JSON.stringify(arr));
       return arr;
     });
+    setIsCustom(false)
   }, [input, customToken]);
 
   const isValid = useMemo<boolean>(() => {
@@ -147,6 +150,7 @@ const TokenSearchModal = ({
     }
   }, []);
   console.log("FILTERED TOKENS", filteredTokens);
+  
   useEffect(() => {
     addEventListener("storage", handleStorageUpdate);
     return () => {
