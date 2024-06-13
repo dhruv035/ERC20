@@ -38,6 +38,9 @@ const Home = () => {
     toAddress: "",
     amount: "",
   });
+  const setForm = (newStates: Partial<FormData>) => {
+    setFormData((prevState) => ({ ...prevState, ...newStates }));
+  };
 
   useEffect(() => {
     if (!address) {
@@ -47,15 +50,11 @@ const Home = () => {
   }, [address]);
 
   useEffect(() => {
-    setFormData((prevState) => ({ ...prevState, amount: "" }));
+    setForm({ amount: "" });
   }, [formData.selectedToken?.address]);
 
   useEffect(() => {
-    setFormData((prevState) => ({
-      ...prevState,
-      amount: "",
-      selectedToken: undefined,
-    }));
+    setForm({ amount: "", selectedToken: undefined });
   }, [address, chain]);
 
   console.log("POLLROOT");

@@ -70,7 +70,3 @@ export const unsetPendingHash = () => {
   localStorage.removeItem("pendingTx");
 };
 
-
-export const localDisable = () =>{
-  
-}

@@ -8,7 +8,7 @@ import {
 } from "react";
 import { TokenData } from "../../../page";
 import Input from "../../BaseComponents/Input";
-import { isAddress } from "viem";
+import { isAddress, isAddressEqual } from "viem";
 import Modal from "../../BaseComponents/Modal";
 import { addToken, removeToken } from "@/app/actions/localStorageUtils";
 import { Button, Spinner, Toggle } from "../../BaseComponents";
@@ -28,10 +28,17 @@ const TokenSearchModal = ({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   setToken: (token: TokenData) => void;
 }) => {
-  const [tokens, setTokens] = useState<TokenData[]>();
+  
   const [input, setInput] = useState<string>("");
   const [isCustom, setIsCustom] = useState<boolean>(false);
   const [customToken, setCustomToken] = useState<TokenData | undefined>();
+
+
+  const [tokens, setTokens] = useState<TokenData[]>();
+  const [importedTokens, setImportedTokens] = useState<TokenData[]>();
+  const [importedTokensArray, setImportedTokensArray] = useState<string[]>();
+
+
   const { address } = useAccount();
   const { data: blockNumber } = useBlockNumber({
     query: {
@@ -39,48 +46,71 @@ const TokenSearchModal = ({
       staleTime: 5_000,
     },
   });
-  const [copiedAddress, setCopiedAddress] = useState<string>("");
 
+  //Alchemy Hooks
   const {
     getAllTokenData,
     getTokenDataArray,
-    initializeStates,
     getTokenData,
+    initializeStates,
     fetchStates,
   } = useAlchemyHooks();
-  const [importedTokens, setImportedTokens] = useState<TokenData[]>();
-  const [importedTokensArray, setImportedTokensArray] = useState<string[]>();
 
+  //Functions
+  const handleStorageUpdate = useCallback((event: StorageEvent) => {
+    if (event.key === "tokensBook") {
+      if (!event.newValue) {
+        setImportedTokensArray([]);
+        return;
+      }
+      const importedTokens: Array<string> = JSON.parse(event.newValue);
+      setImportedTokensArray(importedTokens);
+    }
+  }, []);
+
+  const handleImport = useCallback(async () => {
+    if (!customToken) return;
+    const arr = addToken(input);
+    setImportedTokensArray(arr);
+    setIsCustom(false);
+    setInput("");
+  }, [input, customToken]);
+
+  const filterData = useCallback(
+    (tokens: TokenData[] | undefined) => {
+      if (!tokens) return [] as TokenData[];
+      if (input === "") return tokens;
+      return tokens.filter((token) => {
+        return (
+          token.metaData.name?.toLowerCase().startsWith(input.toLowerCase()) ||
+          token.metaData.symbol
+            ?.toLowerCase()
+            .startsWith(input.toLowerCase()) ||
+          (isAddress(input)
+            ? isAddressEqual(
+                token.address as `0x${string}`,
+                input as `0x${string}`,
+              )
+            : false)
+        );
+      });
+    },
+    [input]
+  );
+
+  //Memos
+  //Memos
   const filteredImportedTokens = useMemo(() => {
-    if (!importedTokens) return [] as TokenData[];
-    if (input === "") return importedTokens;
-    const filteredData = importedTokens.filter((token) => {
-      return (
-        token.metaData.name?.toLowerCase().startsWith(input.toLowerCase()) ||
-        token.metaData.symbol?.toLowerCase().startsWith(input.toLowerCase())
-      );
-    });
-    return filteredData;
-  }, [input, importedTokens]);
+    return filterData(importedTokens);
+  }, [filterData, importedTokens]);
 
-  console.log("importedTokensArray", importedTokensArray);
   const filteredTokens = useMemo(() => {
-    if (!tokens) return [] as TokenData[];
-    if (input === "") return tokens;
-
-    const filteredData = tokens.filter((token) => {
-      return (
-        token.metaData.name?.toLowerCase().startsWith(input.toLowerCase()) ||
-        token.metaData.symbol?.toLowerCase().startsWith(input.toLowerCase())
-      );
-    });
-    return filteredData;
-  }, [input, tokens]);
+    return filterData(tokens);
+  }, [filterData,tokens]);
 
   //Local index is kept as the string and parsed when passed to the state in sideEffect
 
   const importedTokensLocal = useMemo<string[]>(() => {
-    console.log("123:IMPORTED");
     if (typeof window === "undefined") {
       return [];
     } else {
@@ -88,6 +118,12 @@ const TokenSearchModal = ({
       if (data && data !== "") return JSON.parse(data);
     }
   }, []);
+
+  const isValid = useMemo<boolean>(() => {
+    return isAddress(input);
+  }, [input]);
+  //Effects
+
   //Reset Search Text
   useEffect(() => {
     setInput("");
@@ -100,7 +136,6 @@ const TokenSearchModal = ({
           setImportedTokens(data),
         );
       else setImportedTokens([]);
-      //Fetch data for imported tokens, alchemy hook getTokensArray
     } else if (importedTokensLocal && importedTokensLocal.length > 0) {
       setImportedTokensArray(importedTokensLocal);
     }
@@ -114,6 +149,7 @@ const TokenSearchModal = ({
     });
   }, [address, getAllTokenData]);
 
+  //Refresh data every block
   useEffect(() => {
     if (!blockNumber) return;
     if (!address) return;
@@ -122,18 +158,6 @@ const TokenSearchModal = ({
     });
   }, [blockNumber, address, getAllTokenData]);
 
-  const handleImport = useCallback(async () => {
-    if (!customToken) return;
-    const arr = addToken(input);
-    setImportedTokensArray(arr);
-    setIsCustom(false);
-    setInput("");
-  }, [input, customToken]);
-
-  const isValid = useMemo<boolean>(() => {
-    if (!isCustom) return false;
-    return isAddress(input);
-  }, [input, isCustom]);
   useEffect(() => {
     if (!isCustom) return;
     if (!isValid) {
@@ -145,23 +169,13 @@ const TokenSearchModal = ({
     });
   }, [isValid, isCustom, input, getTokenData]);
 
-  const handleStorageUpdate = useCallback((event: StorageEvent) => {
-    if (event.key === "tokensBook") {
-      if (!event.newValue) {
-        setImportedTokensArray([]);
-        return;
-      }
-      const importedTokens: Array<string> = JSON.parse(event.newValue);
-      setImportedTokensArray(importedTokens);
-    }
-  }, []);
-
   useEffect(() => {
     addEventListener("storage", handleStorageUpdate);
     return () => {
       removeEventListener("storage", handleStorageUpdate);
     };
   }, [handleStorageUpdate]);
+
   return (
     <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
       <p className="text-2xl text-white">Select a Token</p>

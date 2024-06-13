@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import TokenInput from "./Tokens/TokenInput";
 import Input from "../BaseComponents/Input";
 import GasStation from "./GasStation";
@@ -25,7 +25,6 @@ const SendTokens = ({
   const { pendingState } = useTransactionContext();
   const { sendTokens } = useERC20();
 
-  console.log("DISABLESTATES",pendingState.isTxDisabled,localDisable)
   //Form Updaters for the Input Field
   const setToken = (token: TokenData) => {
     setFormData((prevState) => {
@@ -45,7 +44,7 @@ const SendTokens = ({
     });
   };
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!formData.selectedToken) return;
     setLocalDisable(true);
     localStorage.setItem("localDisable", "true");
@@ -65,7 +64,7 @@ const SendTokens = ({
       setLocalDisable(false);
       localStorage.setItem("localDisable", "false");
     }
-  };
+  },[formData.amount, formData.selectedToken,formData.toAddress,sendTokens,setFormData])
   //Side Effects
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { formatGwei } from "viem";
 import { useBlockNumber, useGasPrice } from "wagmi";
 
 const Blockchain = ({}: {}) => {
-  const { data: gasPrice, isFetching: isFetchingPrice } = useGasPrice({
+  const { data: gasPrice } = useGasPrice({
     query: {
       staleTime: 1_000,
       refetchInterval: 1_000,
