@@ -57,7 +57,6 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
 
   const handleConnectEvent = useCallback(
     (event: StorageEvent) => {
-      console.log("isConnectedEvent");
       if (event.key === "isConnected") {
         if (event.newValue === "true") {
           reconnect();
@@ -91,7 +90,6 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
     if (typeof window === "undefined") return;
     addEventListener("storage", handleConnectEvent);
     return () => {
-      console.log("Removing storage event listener");
       removeEventListener("storage", handleConnectEvent);
     };
   }, [handleConnectEvent]);

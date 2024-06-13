@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Blockchain from "./components/Web3Components/Blockchain";
 import PendingTransaction from "./components/Web3Components/PendingTransaction";
 import SendTokens from "./components/Web3Components/SendTokens";
@@ -57,12 +57,16 @@ const Home = () => {
     setForm({ amount: "", selectedToken: undefined });
   }, [address, chain]);
 
-  useEffect(() => {
-    if (!blockNumber) return;
+
+  const updateTokenData = useCallback(()=>{
     getTokenData(formData.selectedToken?.address).then((data) => {
       setFormData((prevState) => ({ ...prevState, selectedToken: data }));
     });
-  }, [blockNumber, getTokenData]);
+  },[getTokenData,formData.selectedToken?.address])
+  useEffect(() => {
+    if (!blockNumber) return;
+    updateTokenData();
+  }, [blockNumber, updateTokenData]);
   return (
     <div className="flex min-h-[92vh] w-full flex-col items-center px-8 md:min-h-[90vh]">
       <AnimatePresence>

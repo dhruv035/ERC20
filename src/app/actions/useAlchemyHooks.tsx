@@ -46,7 +46,7 @@ export const AlchemyContext = createContext<AlchemyContextType>(
 );
 
 const useAlchemyHooks = () => {
-  const { address, chain } = useAccount();
+  const { address, chainId } = useAccount();
 
   const [fetchStates, setFetchStates] = useState<FetchStates>({
     metaData: false,
@@ -67,14 +67,14 @@ const useAlchemyHooks = () => {
   const alchemy = useMemo(() => {
     const settings = {
       apiKey: process.env.NEXT_PUBLIC_ALCHEMY_SEPOLIA,
-      network: chain?.id
-        ? chain?.id === 1
+      network: chainId
+        ? chainId === 1
           ? Network.ETH_MAINNET
           : Network.ETH_SEPOLIA
         : undefined, // Expand with a chainId to alchemy network mapping
     };
     return new Alchemy(settings);
-  }, [chain?.id]);
+  }, [chainId]);
 
   const isFetching = useMemo<boolean>(() => {
     let flag = Object.values(fetchStates).every((state) => {
@@ -129,6 +129,7 @@ const useAlchemyHooks = () => {
   const getTokenDataArray = useCallback(
     async (tokenAddresses: Array<string>) => {
       if (fetchRef.current?.tokenDataArray === true) {
+        console.log("1REJECT",tokenAddresses)
         return;
       }
       setFetchState("tokenDataArray", true);
@@ -201,7 +202,6 @@ const useAlchemyHooks = () => {
     setFetchState("allTokenData", true);
     //This function returns non 0 balances for all the tokens, can be edited to show zero balance tokens as well based on all tokens you have ever interacted with
     const data = await alchemy.core.getTokenBalances(address as `0x${string}`);
-    console.log("DATA123", data);
     const formatted = await Promise.all(
       data.tokenBalances
         .filter(

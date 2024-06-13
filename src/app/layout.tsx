@@ -28,7 +28,6 @@ export default function RootLayout({
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key === "mode") {
-        console.log("MODE EVENT");
         setIsDark(localStorage.getItem("mode") === "dark" ? true : false);
       }
     };

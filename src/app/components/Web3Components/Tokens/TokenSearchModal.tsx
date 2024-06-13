@@ -10,13 +10,17 @@ import { TokenData } from "../../../page";
 import Input from "../../BaseComponents/Input";
 import { isAddress, isAddressEqual } from "viem";
 import Modal from "../../BaseComponents/Modal";
-import { addToken, removeToken } from "@/app/actions/localStorageUtils";
 import { Button, Spinner, Toggle } from "../../BaseComponents";
 import useAlchemyHooks from "@/app/actions/useAlchemyHooks";
 import { useAccount, useBlockNumber } from "wagmi";
 import { FaCircle } from "react-icons/fa";
 import TokenList from "./TokenList";
 import TokenMetadata from "./TokenMetadata";
+import {
+  addToken,
+  getTokensBook,
+  removeToken,
+} from "@/app/actions/localStorage/tokensBook";
 
 //I had previously factored this into a seperate Modal component but there is no re usage of Modal
 const TokenSearchModal = ({
@@ -28,18 +32,15 @@ const TokenSearchModal = ({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   setToken: (token: TokenData) => void;
 }) => {
-  
   const [input, setInput] = useState<string>("");
   const [isCustom, setIsCustom] = useState<boolean>(false);
   const [customToken, setCustomToken] = useState<TokenData | undefined>();
-
 
   const [tokens, setTokens] = useState<TokenData[]>();
   const [importedTokens, setImportedTokens] = useState<TokenData[]>();
   const [importedTokensArray, setImportedTokensArray] = useState<string[]>();
 
-
-  const { address } = useAccount();
+  const { address, chainId } = useAccount();
   const { data: blockNumber } = useBlockNumber({
     query: {
       refetchInterval: 6_000,
@@ -57,24 +58,37 @@ const TokenSearchModal = ({
   } = useAlchemyHooks();
 
   //Functions
-  const handleStorageUpdate = useCallback((event: StorageEvent) => {
-    if (event.key === "tokensBook") {
-      if (!event.newValue) {
-        setImportedTokensArray([]);
-        return;
+  const handleStorageUpdate = useCallback(
+    (event: StorageEvent) => {
+      if (event.key === `tokensBook:${chainId}`) {
+        if (!event.newValue) {
+          setImportedTokensArray([]);
+          return;
+        }
+        const importedTokens: Array<string> = JSON.parse(event.newValue);
+        setImportedTokensArray(importedTokens);
       }
-      const importedTokens: Array<string> = JSON.parse(event.newValue);
-      setImportedTokensArray(importedTokens);
-    }
-  }, []);
+    },
+    [chainId],
+  );
+
+  const addLocalToken = useCallback(
+    (input: string) => addToken(chainId)(input),
+    [chainId],
+  );
+  const removeLocalToken = useCallback(
+    (input: string) => removeToken(chainId)(input),
+    [chainId],
+  );
 
   const handleImport = useCallback(async () => {
     if (!customToken) return;
-    const arr = addToken(input);
+    if (!chainId) return;
+    const arr = addLocalToken(input);
     setImportedTokensArray(arr);
     setIsCustom(false);
     setInput("");
-  }, [input, customToken]);
+  }, [input, customToken, chainId, addLocalToken]);
 
   const filterData = useCallback(
     (tokens: TokenData[] | undefined) => {
@@ -95,7 +109,7 @@ const TokenSearchModal = ({
         );
       });
     },
-    [input]
+    [input],
   );
 
   //Memos
@@ -106,7 +120,7 @@ const TokenSearchModal = ({
 
   const filteredTokens = useMemo(() => {
     return filterData(tokens);
-  }, [filterData,tokens]);
+  }, [filterData, tokens]);
 
   //Local index is kept as the string and parsed when passed to the state in sideEffect
 
@@ -114,10 +128,9 @@ const TokenSearchModal = ({
     if (typeof window === "undefined") {
       return [];
     } else {
-      const data = localStorage.getItem("tokensBook");
-      if (data && data !== "") return JSON.parse(data);
+      return getTokensBook(chainId);
     }
-  }, []);
+  }, [chainId]);
 
   const isValid = useMemo<boolean>(() => {
     return isAddress(input);
@@ -130,24 +143,24 @@ const TokenSearchModal = ({
   }, [isOpen]);
 
   useEffect(() => {
-    if (importedTokensArray) {
-      if (importedTokensArray.length > 0)
-        getTokenDataArray(importedTokensArray).then((data) =>
-          setImportedTokens(data),
-        );
-      else setImportedTokens([]);
-    } else if (importedTokensLocal && importedTokensLocal.length > 0) {
+    if (importedTokensLocal && importedTokensLocal.length > 0) {
       setImportedTokensArray(importedTokensLocal);
     }
-  }, [importedTokensArray, importedTokensLocal, getTokenDataArray]);
+  }, [importedTokensLocal]);
 
+  const getAlchemyDataArray = useCallback(() => {
+    if (importedTokensArray) {
+      console.log("IMPOLOCO", importedTokensArray);
+      if (importedTokensArray.length > 0)
+        getTokenDataArray(importedTokensArray).then((data) => {
+          setImportedTokens(data);
+        });
+      else setImportedTokens([]);
+    }
+  }, [importedTokensArray]);
   useEffect(() => {
-    if (!address) return;
-    //Fetch token balances for all ERC20 tokens in wallet
-    getAllTokenData().then((data) => {
-      setTokens(data);
-    });
-  }, [address, getAllTokenData]);
+    getAlchemyDataArray();
+  }, [getAlchemyDataArray]);
 
   //Refresh data every block
   useEffect(() => {
@@ -158,6 +171,10 @@ const TokenSearchModal = ({
     });
   }, [blockNumber, address, getAllTokenData]);
 
+  useEffect(() => {
+    setTokens([]);
+    setImportedTokens([]);
+  }, [chainId]);
   useEffect(() => {
     if (!isCustom) return;
     if (!isValid) {
@@ -215,7 +232,11 @@ const TokenSearchModal = ({
           />
 
           <Button
-            disabled={!isValid || fetchStates.tokenData||customToken?.metaData.name===""}
+            disabled={
+              !isValid ||
+              fetchStates.tokenData ||
+              customToken?.metaData.name === ""
+            }
             onClick={(e) => {
               handleImport();
             }}
@@ -253,7 +274,7 @@ const TokenSearchModal = ({
                       setIsOpen={setIsOpen}
                       deleteImportedToken={(address) => (e) => {
                         e.stopPropagation();
-                        const data = removeToken(address);
+                        const data = removeLocalToken(address);
                         setImportedTokensArray(data);
                       }}
                     />

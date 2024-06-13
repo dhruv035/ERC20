@@ -55,11 +55,6 @@ const TokenInput = ({
                     if (!selectedToken) return;
 
                     const decimals = countDecimals(e.target.value);
-                    console.log(
-                      "decimals",
-                      decimals,
-                      selectedToken.metaData.decimals,
-                    );
                     if (Number(e.target.value) < 0) {
                       openToast(
                         {

@@ -12,7 +12,6 @@ const Blockchain = ({}: {}) => {
   const {data:blockNumber} = useBlockNumber({query:{staleTime:1_000, refetchInterval:1_000}});
   const { timer } = useTimerContext();
 
-  console.log("POLLGAS")
   return (
     <div className="flex w-full flex-col items-center px-2 text-text">
       <p className="my-4 mb-4 text-3xl text-accent">Monitor Chain</p>
