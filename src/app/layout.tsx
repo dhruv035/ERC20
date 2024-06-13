@@ -76,8 +76,7 @@ export default function RootLayout({
               toggle={() => {
                 setIsDark((prevState) => {
                   if (typeof window !== "undefined") {
-                    if (prevState) localStorage.setItem("mode", "light");
-                    else localStorage.setItem("mode", "dark");
+                    localStorage.setItem("mode", prevState ? "light" : "dark");
                   }
                   return !prevState;
                 });

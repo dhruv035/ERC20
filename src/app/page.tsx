@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Blockchain from "./components/Web3Components/Blockchain";
 import PendingTransaction from "./components/Web3Components/PendingTransaction";
 import SendTokens from "./components/Web3Components/SendTokens";
-import { useChainContext } from "./context/RootContext";
 import Tooltip from "./components/BaseComponents/Tooltip";
 import { AnimatePresence, m } from "framer-motion";
 import { useAccount, useBlockNumber } from "wagmi";
@@ -32,8 +31,8 @@ const Home = () => {
   const [isSendTab, setIsSendTab] = useState<boolean>(false);
   const { getTokenData, fetchStates } = useAlchemyHooks();
 
-  const {address, chain} = useAccount()
-  const {data:blockNumber} = useBlockNumber();
+  const { address, chain } = useAccount();
+  const { data: blockNumber } = useBlockNumber();
   const [formData, setFormData] = useState<FormData>({
     selectedToken: undefined,
     toAddress: "",
@@ -59,16 +58,15 @@ const Home = () => {
     }));
   }, [address, chain]);
 
-  console.log("POLLROOT")
+  console.log("POLLROOT");
   useEffect(() => {
     if (!formData.selectedToken?.address) return;
     if (!blockNumber) return;
-    console.log("POLL",blockNumber)
+    console.log("POLL", blockNumber);
     getTokenData(formData.selectedToken.address).then((data) => {
       setFormData((prevState) => ({ ...prevState, selectedToken: data }));
     });
   }, [formData.selectedToken?.address, blockNumber, getTokenData]);
-
   return (
     <div className="flex min-h-[92vh] w-full flex-col items-center px-8 md:min-h-[90vh]">
       <AnimatePresence>

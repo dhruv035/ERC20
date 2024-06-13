@@ -1,6 +1,5 @@
 import { formatGwei } from "viem";
 import {
-  useChainContext,
   useTimerContext,
   useTransactionContext,
 } from "@/app/context/RootContext";

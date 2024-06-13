@@ -6,7 +6,7 @@ import TokenSearchModal from "./TokenSearchModal";
 import { useToast } from "@/app/context/RootContext";
 import { ToastTypes } from "../../BaseComponents/Toast";
 import { countDecimals } from "@/app/actions/utils";
-import useAlchemyHooks from "@/app/actions/useAlchemyHooks";
+import { Button } from "../../BaseComponents";
 
 const TokenInput = ({
   amount,
@@ -99,15 +99,11 @@ const TokenInput = ({
                 />
               </div>
               <div className="my-1 flex w-[30%] flex-col items-end">
-                <button
-                  onClick={() => {
+                <Button
+                  disabled={false}
+                  onClick={(e) => {
                     setIsOpen((prevState) => !prevState);
                   }}
-                  className={`mr-1 flex w-full max-w-[90px] flex-row items-center whitespace-nowrap rounded-full border-[1px] border-background bg-background p-1 text-xs shadow-fuller hover:border-accent hover:text-accent hover:shadow-accent sm:mr-4 sm:p-2 nohover:text-accent nohover:shadow-accent ${
-                    selectedToken
-                      ? "underline shadow-accent"
-                      : "italic shadow-shadow"
-                  }`}
                 >
                   {selectedToken && (
                     <Image
@@ -126,12 +122,13 @@ const TokenInput = ({
                     ></Image>
                   )}
                   <p className="overflow-hidden">
-                    {(selectedToken?.metaData?.symbol?.length &&
-                    selectedToken?.metaData.symbol.length > 6
-                      ? selectedToken?.metaData.symbol.substring(0, 5) + ".."
-                      : selectedToken?.metaData.symbol) ?? "Select Token"}
+                    {selectedToken?.metaData?.symbol?.length
+                      ? selectedToken?.metaData.symbol.length > 6
+                        ? selectedToken?.metaData.symbol.substring(0, 5) + ".."
+                        : selectedToken?.metaData.symbol
+                      : "Select Token"}
                   </p>
-                </button>
+                </Button>
               </div>
             </div>
             <div className="flex w-full flex-row-reverse items-baseline whitespace-nowrap">
@@ -157,7 +154,6 @@ const TokenInput = ({
       }
       {isOpen && (
         <TokenSearchModal
-          selectedToken={selectedToken}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
           setToken={setToken}

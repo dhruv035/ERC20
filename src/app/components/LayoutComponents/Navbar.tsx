@@ -4,7 +4,6 @@ import ConnectButton from "../Web3Components/ConnectButton";
 import Toggle from "../BaseComponents/Toggle";
 import { CiLight, CiDark } from "react-icons/ci";
 import { BsFillFuelPumpFill } from "react-icons/bs";
-import { useChainContext } from "@/app/context/RootContext";
 import { useGasPrice } from "wagmi";
 export default function Navbar({
   isDark,
@@ -35,6 +34,7 @@ export default function Navbar({
       <div className="mr-4 flex w-full flex-row-reverse items-center">
         <ConnectButton />
         <Toggle
+        className="mr-2 md:mr-8"
           isTrue={isDark}
           toggle={toggle}
           trueImage={<CiDark className="h-full w-full" />}

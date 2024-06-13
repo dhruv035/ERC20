@@ -13,8 +13,8 @@ const GasStation = () => {
     formatUnits: "gwei",
     query: {
       enabled: !gasSettings.isDisabled,
-      staleTime: 1_000,
-      refetchInterval: 1_000,
+      staleTime: 6_000,
+      refetchInterval: 6_000,
     },
   });
   const { open: openToast } = useToast();
@@ -62,9 +62,9 @@ const GasStation = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="text-center">
+                    <tr className="text-center ">
                       <td
-                        className="hover:cursor-pointer hover:text-accent hover:underline"
+                        className={`hover:cursor-pointer hover:text-accent hover:underline ${isFetchingEstimate?"animate-pulse-fast text-red-600":""}`}
                         onClick={() => {
                           gasEstimate &&
                             setGasSettings((prevState) => ({
@@ -84,7 +84,7 @@ const GasStation = () => {
                                 gasEstimate.formatted.maxPriorityFeePerGas,
                             }));
                         }}
-                        className="hover:cursor-pointer hover:text-accent hover:underline"
+                        className={`hover:cursor-pointer hover:text-accent hover:underline ${isFetchingEstimate?"animate-pulse-fast text-red-600":""}`}
                       >
                         {gasEstimate?.formatted.maxPriorityFeePerGas}
                       </td>

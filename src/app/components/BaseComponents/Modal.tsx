@@ -32,7 +32,7 @@ const Modal = ({
           exit={{ opacity: 0, translateY: 100, transition: { duration: 0.3 } }}
           className="fixed right-0 top-0 z-[20] flex h-full w-full items-center justify-center bg-gray-900 bg-opacity-30 px-10"
         >
-          <div className="flex w-[90%] max-w-[600px] rounded-md bg-text p-[2px]">
+          <div className="flex w-[90%] max-w-[600px] rounded-md bg-text p-[2px] overflow-hidden">
             <div
               ref={ref}
               className="flex h-96 w-full flex-col items-center rounded-md bg-modal shadow-md"

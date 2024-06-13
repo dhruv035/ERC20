@@ -1,4 +1,4 @@
-import { IconType } from "react-icons";
+
 
 const Toggle = ({
   isTrue,
@@ -13,11 +13,11 @@ const Toggle = ({
   trueImage: React.ReactNode;
   falseImage: React.ReactNode;
   id?: string;
-  className?:string;
+  className?: string;
 }) => {
   return (
     <div
-      className={`group/toggle mr-2 select-none rounded-full p-[1px] text-text shadow-fuller shadow-gray-600 hover:cursor-pointer hover:bg-base-green hover:text-base-green md:mr-8 nohover:hover:bg-navbar nohover:hover:text-gray-600 ${className}`}
+      className={`group/toggle select-none rounded-full p-[1px] text-text shadow-fuller shadow-gray-600 hover:cursor-pointer hover:bg-base-green hover:text-base-green nohover:hover:bg-navbar nohover:hover:text-gray-600 ${className}`}
     >
       <div
         onClick={(e) => {

@@ -15,6 +15,7 @@ import {
 } from "viem";
 import { ToastTypes } from "../components/BaseComponents/Toast";
 import { shortenHash } from "./utils";
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 const useERC20 = () => {
   const { gasSettings } = useChainContext();
@@ -23,6 +24,7 @@ const useERC20 = () => {
   const { pendingState, setPendingState } = useTransactionContext();
   const { sendTransaction } = useSendTransaction();
 
+  const addRecentTransaction = useAddRecentTransaction();
 
   const config = useConfig();
   const { open: openToast } = useToast();
@@ -52,6 +54,7 @@ const useERC20 = () => {
               },
               6000,
             );
+            addRecentTransaction({hash:(hash as string), description:"HELLO"})
             setPendingState((prevState) => ({
               ...prevState,
               pendingTx: hash,
@@ -102,6 +105,7 @@ const useERC20 = () => {
           },
           6000,
         );
+        addRecentTransaction({hash:(hash as string), description:"HELLO"})
         setPendingState((prevState) => ({
           ...prevState,
           pendingTx: hash,

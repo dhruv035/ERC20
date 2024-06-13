@@ -7,27 +7,23 @@ import {
   useState,
 } from "react";
 import { TokenData } from "../../../page";
-import Image from "next/image";
 import Input from "../../BaseComponents/Input";
 import { isAddress } from "viem";
 import Modal from "../../BaseComponents/Modal";
 import { addToken, removeToken } from "@/app/actions/localStorageUtils";
 import { Button, Spinner, Toggle } from "../../BaseComponents";
 import useAlchemyHooks from "@/app/actions/useAlchemyHooks";
-import { shortenHash } from "@/app/actions/utils";
-import { LuCircle, LuCopy, LuTrash2 } from "react-icons/lu";
-import { LuCopyCheck } from "react-icons/lu";
 import { useAccount, useBlockNumber } from "wagmi";
 import { FaCircle } from "react-icons/fa";
+import TokenList from "./TokenList";
+import TokenMetadata from "./TokenMetadata";
 
 //I had previously factored this into a seperate Modal component but there is no re usage of Modal
 const TokenSearchModal = ({
-  selectedToken,
   isOpen,
   setIsOpen,
   setToken,
 }: {
-  selectedToken: TokenData | undefined;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   setToken: (token: TokenData) => void;
@@ -215,28 +211,7 @@ const TokenSearchModal = ({
           {fetchStates.tokenData && <Spinner />}
           {
             //Show metaData here
-            customToken && (
-              <div className="flex flex-col items-center">
-                {"Logo"}
-                <Image
-                  className="mx-2 rounded-[100%] shadow-fuller shadow-gray-200"
-                  src={
-                    customToken.metaData?.logo ?? "https://picsum.photos/200"
-                  }
-                  alt=""
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                  }}
-                  width={30}
-                  height={30}
-                ></Image>
-                <p>Name: {customToken.metaData?.name}</p>
-                <p>Symbol: {customToken.metaData?.symbol}</p>
-                <p>Decimals: {customToken.metaData?.decimals}</p>
-                <p>Balance: {customToken.balance}</p>
-              </div>
-            )
+            customToken && <TokenMetadata token={customToken} />
           }
         </div>
       ) : (
@@ -249,186 +224,41 @@ const TokenSearchModal = ({
             onChange={(e) => setInput(e.target.value)}
           />
 
-          {!initializeStates.allTokenData ? (
-            <Spinner />
-          ) : (
+          {
             <ul className="no-scrollbar flex h-fit max-h-[200px] w-full justify-center overflow-scroll rounded-2xl border-[1px] border-white bg-transparent">
-              <div className="flex w-full max-w-96 flex-col rounded-2xl">
-                {filteredImportedTokens &&
-                  filteredImportedTokens.map(
-                    (token: TokenData, index: number) => {
-                      return (
-                        <li
-                          className="flex flex-row items-center bg-transparent p-4 first:rounded-t-2xl last:rounded-b-2xl hover:cursor-pointer hover:bg-background"
-                          key={index}
-                          onClick={(e) => {
-                            setIsOpen(false);
-                            setToken(token);
-                          }}
-                        >
-                          <Image
-                            className="mx-2 rounded-[100%] shadow-fuller shadow-gray-200"
-                            src={
-                              token.metaData?.logo ??
-                              "https://picsum.photos/200"
-                            }
-                            alt=""
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                            }}
-                            width={30}
-                            height={30}
-                          ></Image>
-                          <div className="flex w-full flex-col">
-                            <div className="flex flex-row">
-                              <div className="flex flex-row whitespace-nowrap">
-                                {token.metaData?.name}{" "}
-                                <p className="ml-2 content-center rounded-xl border-[1px] border-accent bg-transparent px-1 text-xs text-accent opacity-70">
-                                  Imported
-                                </p>
-                              </div>
-                              <div className="flex w-full flex-row-reverse">
-                                <button
-                                  className="ml-2 text-red-400"
-                                  onClick={(e) => {
-                                    console.log("HEREPREVSTATE");
-                                    e.stopPropagation();
-                                    const data = removeToken(token.address);
-                                    setImportedTokensArray(data);
-                                  }}
-                                >
-                                  <LuTrash2 />
-                                </button>
-                              </div>
-                            </div>
-                            <div className="font-600 group flex flex-row items-center text-sm">
-                              Address:{" "}
-                              <p className="mr-4 text-accent">
-                                {shortenHash(token.address)}
-                              </p>
-                              <div className="flex w-full flex-row-reverse">
-                                {copiedAddress === token.address ? (
-                                  <LuCopyCheck
-                                    size={14}
-                                    className="hover:cursor-copy"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                      navigator.clipboard.writeText(
-                                        token.address,
-                                      );
-                                      setCopiedAddress(token.address);
-                                    }}
-                                  />
-                                ) : (
-                                  <LuCopy
-                                    size={14}
-                                    className="hover:cursor-copy"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                      navigator.clipboard.writeText(
-                                        token.address,
-                                      );
-                                      setCopiedAddress(token.address);
-                                    }}
-                                  />
-                                )}
-                              </div>
-                            </div>
-                            <div className="font-600 flex flex-row text-sm">
-                              Balance:{" "}
-                              <p
-                                className={`${
-                                  fetchStates.allTokenData
-                                    ? "animate-pulse-fast text-red-600"
-                                    : "text-accent"
-                                }`}
-                              >
-                                {token.balance}
-                              </p>
-                            </div>
-                          </div>
-                        </li>
-                      );
-                    },
-                  )}
-                {filteredTokens.map((token: TokenData, index: number) => {
-                  return (
-                    <li
-                      className="flex flex-row items-center bg-transparent p-4 first:rounded-t-2xl last:rounded-b-2xl hover:cursor-pointer hover:bg-background"
-                      key={index}
-                      onClick={(e) => {
-                        setIsOpen(false);
-                        setToken(token);
+              <div className="flex w-full max-w-96 flex-col items-center rounded-2xl">
+                {filteredImportedTokens.length > 0 &&
+                  (!initializeStates.tokenDataArray ? (
+                    <Spinner className="my-4" />
+                  ) : (
+                    <TokenList
+                      tokens={filteredImportedTokens}
+                      isUpdating={fetchStates.tokenDataArray}
+                      isImported={true}
+                      setToken={setToken}
+                      setIsOpen={setIsOpen}
+                      deleteImportedToken={(address) => (e) => {
+                        e.stopPropagation();
+                        const data = removeToken(address);
+                        setImportedTokensArray(data);
                       }}
-                    >
-                      <Image
-                        className="mx-2 rounded-[100%] shadow-fuller shadow-gray-200"
-                        src={token.metaData.logo ?? "https://picsum.photos/200"}
-                        alt=""
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                        }}
-                        width={30}
-                        height={30}
-                      ></Image>
-                      <div className="flex w-full flex-col">
-                        <p className="whitespace-nowrap">
-                          {token.metaData.name}
-                        </p>
-                        <div className="font-600 group flex flex-row items-center text-sm">
-                          Address:{" "}
-                          <p className="mr-4 text-accent">
-                            {shortenHash(token.address)}
-                          </p>
-                          <div className="flex w-full flex-row-reverse">
-                            {copiedAddress === token.address ? (
-                              <LuCopyCheck
-                                size={14}
-                                className="hover:cursor-copy"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                  navigator.clipboard.writeText(token.address);
-                                  setCopiedAddress(token.address);
-                                }}
-                              />
-                            ) : (
-                              <LuCopy
-                                size={14}
-                                className="hover:cursor-copy"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                  navigator.clipboard.writeText(token.address);
-                                  setCopiedAddress(token.address);
-                                }}
-                              />
-                            )}
-                          </div>
-                        </div>
-                        <div className="font-600 flex flex-row text-sm">
-                          Balance:{" "}
-                          <p
-                            className={`${
-                              fetchStates.allTokenData
-                                ? "animate-pulse-fast text-red-600"
-                                : "text-accent"
-                            }`}
-                          >
-                            {token.balance}
-                          </p>
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
+                    />
+                  ))}
+                {filteredTokens.length > 0 &&
+                  (!initializeStates.allTokenData ? (
+                    <Spinner className="my-4" />
+                  ) : (
+                    <TokenList
+                      tokens={filteredTokens}
+                      isUpdating={fetchStates.allTokenData}
+                      isImported={false}
+                      setToken={setToken}
+                      setIsOpen={setIsOpen}
+                    />
+                  ))}
               </div>
             </ul>
-          )}
+          }
         </div>
       )}
     </Modal>

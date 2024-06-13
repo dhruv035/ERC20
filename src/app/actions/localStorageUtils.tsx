@@ -29,6 +29,13 @@ export const removeToken = (address: string) => {
   return parsed;
 };
 
+export const unsetTokens = () => {
+  localStorage.removeItem("tokensBook");
+
+}
+
+
+
 export const addAddress = (address: string) => {
   const addressArray = localStorage.getItem("addressBook");
   if (!addressArray || addressArray === "") {
@@ -53,6 +60,8 @@ export const unsetAddressBook = () => {
   localStorage.removeItem("tokensArray");
 };
 
+
+
 export const setPendingHash = (hash: string) => {
   localStorage.setItem("pendingTx", hash);
 };
@@ -60,3 +69,8 @@ export const setPendingHash = (hash: string) => {
 export const unsetPendingHash = () => {
   localStorage.removeItem("pendingTx");
 };
+
+
+export const localDisable = () =>{
+  
+}

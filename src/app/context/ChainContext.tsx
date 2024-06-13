@@ -10,15 +10,11 @@ import {
   useState,
 } from "react";
 import {
-  useAccount,
   useAccountEffect,
   useReconnect,
 } from "wagmi";
-import { Chain } from "viem";
-import { connect } from "wagmi/actions";
 import { useToast } from "./RootContext";
 import { ToastTypes } from "./ToastContext";
-import { useRouter } from "next/navigation";
 
 //Global contexts may be persisted and managed here
 
@@ -45,7 +41,6 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
     maxFee: "",
   });
 
-  const {address} = useAccount();
   const { reconnect } = useReconnect();
   const { open: openToast } = useToast();
   const [isConnected, setIsConnected] = useState<boolean>(false);

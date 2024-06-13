@@ -39,6 +39,7 @@ customMainnet.rpcUrls = {
 //The task being front end I
 export const config = getDefaultConfig({
   appName: "My RainbowKit App",
+  multiInjectedProviderDiscovery: true, 
   projectId: process.env.NEXT_PUBLIC_PROJECT_ID ?? "",
   chains: [customSepolia, customMainnet],
   storage: createStorage({
@@ -61,7 +62,7 @@ export function ContextProvider({
       <ToastProvider>
         <WagmiProvider config={config} reconnectOnMount={true}>
           <QueryClientProvider client={queryClient}>
-            <RainbowKitProvider theme={isDark ? darkTheme() : lightTheme()}>
+            <RainbowKitProvider showRecentTransactions={true} theme={isDark ? darkTheme() : lightTheme()}>
               <TimerProvider>
                 <ChainProvider>
                   <TransactionProvider>{children}</TransactionProvider>

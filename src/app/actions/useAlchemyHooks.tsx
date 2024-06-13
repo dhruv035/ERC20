@@ -128,7 +128,7 @@ const useAlchemyHooks = () => {
 
   const getTokenDataArray = useCallback(
     async (tokenAddresses: Array<string>) => {
-      if (fetchRef.current?.tokenData === true) {
+      if (fetchRef.current?.tokenDataArray === true) {
         return;
       }
       setFetchState("tokenDataArray", true);
@@ -154,7 +154,7 @@ const useAlchemyHooks = () => {
         }),
       );
       setFetchState("tokenDataArray", false);
-      if (initializeRef.current?.tokenData === false) {
+      if (initializeRef.current?.tokenDataArray === false) {
         setInitializeState("tokenDataArray", true);
       }
       return tokensData;
