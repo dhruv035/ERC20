@@ -1,5 +1,6 @@
 //Address Book functions
 
+//Update to Maintain a data structure for a contact
 export const getAddressBook = () => {
     const data = localStorage.getItem("tokensArray");
     if(data)

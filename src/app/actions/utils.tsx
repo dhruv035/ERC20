@@ -6,8 +6,6 @@ export const shortenHash = (hash: string) => {
 };
 
 export const countDecimals = (amount: string) => {
-  // verify if number 0.000005 is represented as "5e-6"
-  // count decimals for number in representation like "0.123456"
   const index = amount.indexOf(".");
   if (index === -1) return 0;
   return amount.length - index - 1;

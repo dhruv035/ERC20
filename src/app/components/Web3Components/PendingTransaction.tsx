@@ -3,7 +3,7 @@ import {
   useTimerContext,
   useTransactionContext,
 } from "@/app/context/RootContext";
-import useERC20 from "@/app/actions/erc20Hooks";
+import useERC20 from "@/app/actions/useERC20";
 import { useAccount, useBlockNumber, useGasPrice } from "wagmi";
 import { AnimatePresence, m } from "framer-motion";
 

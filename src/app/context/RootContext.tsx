@@ -36,7 +36,6 @@ customMainnet.rpcUrls = {
   },
 };
 
-//The task being front end I
 export const config = getDefaultConfig({
   appName: "My RainbowKit App",
   multiInjectedProviderDiscovery: true, 

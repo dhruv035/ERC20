@@ -4,7 +4,7 @@ import Input from "../BaseComponents/Input";
 import GasStation from "./GasStation";
 import { FormData, TokenData } from "../../page";
 import { useTransactionContext } from "@/app/context/RootContext";
-import useERC20 from "@/app/actions/erc20Hooks";
+import useERC20 from "@/app/actions/useERC20";
 import Spinner from "../BaseComponents/Spinner";
 import Tooltip from "../BaseComponents/Tooltip";
 import { getStorageDisable, setStorageDisable } from "@/app/actions/localStorage/pendingState";
