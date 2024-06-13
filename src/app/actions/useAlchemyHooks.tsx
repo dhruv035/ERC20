@@ -162,7 +162,9 @@ const useAlchemyHooks = () => {
     [alchemy, address],
   );
   const getTokenData = useCallback(
-    async (tokenAddress: string) => {
+    async (tokenAddress: string|undefined) => {
+      if(!tokenAddress)
+        return;
       if (fetchRef.current?.tokenData === true) {
         return;
       }

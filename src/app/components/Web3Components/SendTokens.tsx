@@ -26,14 +26,14 @@ const SendTokens = ({
   const { sendTokens } = useERC20();
 
   //Form Updaters for the Input Field
-  const setToken = (token: TokenData) => {
+  const setToken = useCallback((token: TokenData) => {
     setFormData((prevState) => {
       return {
         ...prevState,
         selectedToken: token,
       };
     });
-  };
+  },[setFormData])
 
   const setAmount = (amount: string) => {
     setFormData((prevState) => {
@@ -79,6 +79,8 @@ const SendTokens = ({
     };
   }, []);
 
+  console.log("PENDINGDISABLES",localDisable)
+  console.log("PENDING",pendingState)
   return (
     <div>
       <p className="my-4 text-center text-2xl text-accent">

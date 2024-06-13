@@ -57,15 +57,12 @@ const Home = () => {
     setForm({ amount: "", selectedToken: undefined });
   }, [address, chain]);
 
-  console.log("POLLROOT");
   useEffect(() => {
-    if (!formData.selectedToken?.address) return;
     if (!blockNumber) return;
-    console.log("POLL", blockNumber);
-    getTokenData(formData.selectedToken.address).then((data) => {
+    getTokenData(formData.selectedToken?.address).then((data) => {
       setFormData((prevState) => ({ ...prevState, selectedToken: data }));
     });
-  }, [formData.selectedToken?.address, blockNumber, getTokenData]);
+  }, [blockNumber, getTokenData]);
   return (
     <div className="flex min-h-[92vh] w-full flex-col items-center px-8 md:min-h-[90vh]">
       <AnimatePresence>

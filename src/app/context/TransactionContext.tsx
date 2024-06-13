@@ -90,6 +90,11 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
     typeof window !== "undefined"
       ? localStorage.getItem("pendingTx")
       : undefined;
+
+  const localBlockNumber =
+    typeof window !== "undefined"
+      ? localStorage.getItem("pendingBlock")
+      : undefined;
   //Watch transaction status if there's a hash pending
   const { data, status, error } = useWaitForTransactionReceipt({
     hash: pendingStateRef.current.pendingTx,
@@ -113,7 +118,12 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
     unsetPendingHash();
     localStorage.removeItem("pendingBlock");
     setPendingState({ isTxDisabled: false } as PendingState);
-  }, [chain?.blockExplorers?.default?.url, openToast, pendingState.pendingTx]);
+  }, [
+    chain?.blockExplorers?.default?.url,
+    openToast,
+    pendingState.pendingTx,
+    setPendingState,
+  ]);
 
   const handleError = useCallback(async () => {
     if (!error) return;
@@ -142,16 +152,17 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key === "pendingTx") {
-        if(event.newValue!==null)
-        setPendingState((prevState) => {
-          return {
-            ...prevState,
-            pendingTx:
-              event.newValue !== null
-                ? (event.newValue as `0x${string}`)
-                : undefined,
-          };
-        });
+        if (event.newValue !== null)
+          setPendingState((prevState) => {
+            console.log("PREVSTATE1", prevState);
+            return {
+              ...prevState,
+              pendingTx:
+                event.newValue !== null
+                  ? (event.newValue as `0x${string}`)
+                  : undefined,
+            };
+          });
         if (
           event.newValue !== null &&
           (event.newValue as `0x${string}`) !==
@@ -172,12 +183,15 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
           );
         }
       } else if (event.key === "pendingBlock") {
-        if(event.newValue!==null)
-        setPendingState((prevState) => ({
-          ...prevState,
-          pendingTxBlock:
-            event.newValue !== null ? BigInt(event.newValue) : undefined,
-        }));
+        if (event.newValue !== null)
+          setPendingState((prevState) => {
+            console.log("PREVSTATE2", prevState);
+            return {
+              ...prevState,
+              pendingTxBlock:
+                event.newValue !== null ? BigInt(event.newValue) : undefined,
+            };
+          });
       }
     };
     addEventListener("storage", handleStorage);
@@ -186,20 +200,14 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [openToast]);
 
-  //Update PendingState when pendingTx hash changes
-  useEffect(() => {
-    if (
-      pendingState.pendingTx &&
-      pendingState.pendingTx !== null &&
-      pendingState.pendingTx.toString() !== ""
-    ) {
-      //This function is used to fetch transaction because alchemy will find transaction even if they were not included in a block (Since the tx was sent originally by Alchemy RPC)
-      //We use this function to fetch gas fee paid and nonce for a stuck transaction
+  const handleAlchemy = useCallback(async () => {
+    if (!pendingState.pendingTx) return;
+    const result = await getAlchemyTransaction(pendingState.pendingTx)
+    if (!result) return;
 
-      getAlchemyTransaction(pendingState.pendingTx).then((result) => {
-        if (!result) return;
-
-        setPendingState((prevState) => ({
+      setPendingState((prevState) => {
+        console.log("PREVSTATE3", prevState);
+        return {
           ...prevState,
           maxFee: result.maxFeePerGas?.toBigInt(),
           maxPriorityFee: result.maxPriorityFeePerGas?.toBigInt(),
@@ -207,35 +215,49 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
           to: result.to,
           nonce: result.nonce,
           isTxDisabled: true,
-        }));
+        };
       });
+  }, [pendingState.pendingTx,getAlchemyTransaction]);
+  //Update PendingState when pendingTx hash changes
+  useEffect(() => {
+    if (pendingState.pendingTx) {
+      if(pendingTxLocal)
+      handleAlchemy();
+      //This function is used to fetch transaction because alchemy will find transaction even if they were not included in a block (Since the tx was sent originally by Alchemy RPC)
+      //We use this function to fetch gas fee paid and nonce for a stuck transaction
     } else {
       if (pendingTxLocal && pendingTxLocal !== "") {
-        setPendingState((prevState) => ({
-          ...prevState,
-          pendingTx: pendingTxLocal as `0x${string}`,
-        }));
+        setPendingState((prevState) => {
+          console.log("PREVSTATE4", prevState);
+          return {
+            ...prevState,
+            pendingTx: pendingTxLocal as `0x${string}`,
+          };
+        });
       } else {
-        setPendingState((prevState) => ({
-          ...prevState,
-          isTxDisabled: false,
-        }));
+        setPendingState((prevState) => {
+          console.log("PREVSTATE5", prevState);
+          return {
+            ...prevState,
+            isTxDisabled: false,
+          };
+        });
       }
     }
-  }, [pendingTxLocal, pendingState.pendingTx, getAlchemyTransaction]);
+  }, [pendingTxLocal,pendingState.pendingTx, handleAlchemy]);
 
   //Update pendingTxBlock, kept seperate to avoid unnecessary refetch
   useEffect(() => {
     if (!pendingState.pendingTxBlock) {
-      const localBlockNumber = localStorage.getItem("pendingBlock");
       if (localBlockNumber && localBlockNumber !== null) {
-        setPendingState((prevState) => ({
-          ...prevState,
-          pendingTxBlock: BigInt(localBlockNumber),
-        }));
+        setPendingState((prevState) => {
+          console.log("PREVSTATE6", prevState);
+          if (!prevState.pendingTx) return prevState;
+          return { ...prevState, pendingTxBlock: BigInt(localBlockNumber) };
+        });
       }
     }
-  }, [pendingState.pendingTxBlock]);
+  }, [localBlockNumber,pendingState.pendingTxBlock]);
 
   //Takes data from pendingState maintained in the context to send a replacement transaction
 
