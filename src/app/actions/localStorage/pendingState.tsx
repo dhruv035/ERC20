@@ -10,4 +10,6 @@ export const setPendingHash = (hash: string) => {
     localStorage.removeItem("pendingTx");
   };
   
-  
+export const getPendingBlock = () => {
+  localStorage.getItem("pendingBlock");
+};
