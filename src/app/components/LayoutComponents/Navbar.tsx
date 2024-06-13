@@ -5,6 +5,7 @@ import Toggle from "../BaseComponents/Toggle";
 import { CiLight, CiDark } from "react-icons/ci";
 import { BsFillFuelPumpFill } from "react-icons/bs";
 import { useChainContext } from "@/app/context/RootContext";
+import { useGasPrice } from "wagmi";
 export default function Navbar({
   isDark,
   toggle,
@@ -12,7 +13,12 @@ export default function Navbar({
   isDark: boolean;
   toggle: () => void;
 }) {
-  const { gasPrice } = useChainContext();
+  const { data: gasPrice } = useGasPrice({
+    query: {
+      staleTime: 1_000,
+      refetchInterval: 1_000,
+    },
+  });
   const formatted = Number(formatGwei(gasPrice ?? BigInt(0))).toFixed(3);
   return (
     <div className="flex h-[8vh] flex-row items-center bg-navbar py-4 md:h-[10vh]">
@@ -31,8 +37,8 @@ export default function Navbar({
         <Toggle
           isTrue={isDark}
           toggle={toggle}
-          trueImage={CiDark}
-          falseImage={CiLight}
+          trueImage={<CiDark className="h-full w-full" />}
+          falseImage={<CiLight className="h-full w-full" />}
           id="LightDarkToggle"
         />
       </div>

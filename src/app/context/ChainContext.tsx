@@ -7,20 +7,11 @@ import {
   createContext,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import {
-  Connector,
   useAccount,
   useAccountEffect,
-  useBlockNumber,
-  useConfig,
-  useConnect,
-  useConnectorClient,
-  useDisconnect,
-  useEstimateFeesPerGas,
-  useGasPrice,
   useReconnect,
 } from "wagmi";
 import { Chain } from "viem";
@@ -32,24 +23,9 @@ import { useRouter } from "next/navigation";
 //Global contexts may be persisted and managed here
 
 export type ChainContextType = {
-  chain: Chain | undefined;
-  blockNumber: bigint | undefined;
-  address: `0x${string}` | undefined;
   isConnected: boolean;
   gasSettings: GasSettings;
   setGasSettings: Dispatch<SetStateAction<GasSettings>>;
-  gasEstimate?: {
-    gasPrice?: undefined;
-    maxFeePerGas: bigint;
-    maxPriorityFeePerGas: bigint;
-    formatted: {
-      gasPrice?: undefined;
-      maxFeePerGas: string;
-      maxPriorityFeePerGas: string;
-    };
-  };
-  gasPrice: bigint | undefined;
-  isFetchingChain: boolean;
 };
 
 export type GasSettings = {
@@ -62,61 +38,16 @@ export const ChainContext = createContext<ChainContextType>(
   {} as ChainContextType,
 );
 
-interface ExtendedConnector extends Connector {
-  id: string;
-  name: string;
-  iconBackground?: string;
-  qrCode?: object;
-  iconUrl?: () => string;
-  rkDetails?: {
-    id: string;
-    name: string;
-    iconBackground: string;
-    qrCode: object;
-    iconUrl: () => string;
-  };
-}
-
 const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
   const [gasSettings, setGasSettings] = useState<GasSettings>({
     isDisabled: true,
     maxPriorityFee: "",
     maxFee: "",
   });
-  const { address, chain } = useAccount();
 
-  //Inv
-  const blockNumber = useBlockNumber({
-    watch: true,
-    query: {
-      staleTime: 1_000,
-      refetchInterval: 1_000,
-    },
-  });
-  const [isFetching, setIsFetching] = useState<boolean>(false);
-
-  const { connect, connectors } = useConnect();
+  const {address} = useAccount();
   const { reconnect } = useReconnect();
-  const router = useRouter();
-  const { disconnect } = useDisconnect();
   const { open: openToast } = useToast();
-  const connectorsRef = useRef<readonly Connector[]>();
-  connectorsRef.current = connectors;
-  const { data: gasPrice, isFetching: isFetchingPrice } = useGasPrice({
-    query: {
-      staleTime: 1_000,
-      refetchInterval: 1_000,
-    },
-  });
-  const { data: gasEstimate, isFetching: isFetchingEstimate } =
-    useEstimateFeesPerGas({
-      formatUnits: "gwei",
-      query: {
-        enabled: !gasSettings.isDisabled,
-        staleTime: 1_000,
-        refetchInterval: 1_000,
-      },
-    });
   const [isConnected, setIsConnected] = useState<boolean>(false);
   useAccountEffect({
     onConnect() {
@@ -159,7 +90,7 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
         //window.location.reload();
       }
     },
-    [connectors, disconnect, openToast, reconnect, openToast, address],
+    [openToast, reconnect],
   );
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -171,22 +102,13 @@ const ChainProvider: NextPage<{ children: ReactNode }> = ({ children }) => {
   }, [handleConnectEvent]);
   //Block Countdown
 
-  useEffect(() => {
-    if (isFetchingEstimate || isFetchingPrice) setIsFetching(true);
-    else setIsFetching(false);
-  }, [isFetchingEstimate, isFetchingPrice]);
   return (
     <ChainContext.Provider
       value={{
-        chain,
-        blockNumber: blockNumber.data,
-        address,
         isConnected,
         gasSettings,
         setGasSettings,
-        gasEstimate: gasEstimate,
-        gasPrice,
-        isFetchingChain: isFetching,
+
       }}
     >
       {children}

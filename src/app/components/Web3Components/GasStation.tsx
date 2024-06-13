@@ -3,10 +3,20 @@ import Input from "../BaseComponents/Input";
 import Accordion from "../BaseComponents/Accordion";
 import { useToast, useChainContext } from "@/app/context/RootContext";
 import { ToastTypes } from "../BaseComponents/Toast";
+import { useEstimateFeesPerGas } from "wagmi";
 
 const GasStation = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { gasSettings, setGasSettings, gasEstimate } = useChainContext();
+  const { gasSettings, setGasSettings } = useChainContext();
+  const { data: gasEstimate, isFetching: isFetchingEstimate } =
+  useEstimateFeesPerGas({
+    formatUnits: "gwei",
+    query: {
+      enabled: !gasSettings.isDisabled,
+      staleTime: 1_000,
+      refetchInterval: 1_000,
+    },
+  });
   const { open: openToast } = useToast();
   return (
     <Accordion isOpen={isOpen} setIsOpen={setIsOpen} header="Gas Station">

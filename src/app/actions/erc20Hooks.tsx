@@ -6,7 +6,7 @@ import {
 } from "../context/RootContext";
 import { TokenData } from "../page";
 import { writeContract } from "wagmi/actions";
-import { useConfig, useSendTransaction } from "wagmi";
+import { useAccount, useBlockNumber, useConfig, useSendTransaction, useWriteContract } from "wagmi";
 import {
   TransactionExecutionErrorType,
   erc20Abi,
@@ -17,9 +17,12 @@ import { ToastTypes } from "../components/BaseComponents/Toast";
 import { shortenHash } from "./utils";
 
 const useERC20 = () => {
-  const { gasSettings, chain, blockNumber } = useChainContext();
+  const { gasSettings } = useChainContext();
+  const {chain} = useAccount();
+  const {data:blockNumber} = useBlockNumber();
   const { pendingState, setPendingState } = useTransactionContext();
   const { sendTransaction } = useSendTransaction();
+
 
   const config = useConfig();
   const { open: openToast } = useToast();

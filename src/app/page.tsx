@@ -6,7 +6,7 @@ import SendTokens from "./components/Web3Components/SendTokens";
 import { useChainContext } from "./context/RootContext";
 import Tooltip from "./components/BaseComponents/Tooltip";
 import { AnimatePresence, m } from "framer-motion";
-import { useAccount } from "wagmi";
+import { useAccount, useBlockNumber } from "wagmi";
 import useAlchemyHooks from "./actions/useAlchemyHooks";
 
 export type TokenData = {
@@ -30,9 +30,10 @@ export type FormData = {
 
 const Home = () => {
   const [isSendTab, setIsSendTab] = useState<boolean>(false);
-  const { address, blockNumber, chain } = useChainContext();
   const { getTokenData, fetchStates } = useAlchemyHooks();
 
+  const {address, chain} = useAccount()
+  const {data:blockNumber} = useBlockNumber();
   const [formData, setFormData] = useState<FormData>({
     selectedToken: undefined,
     toAddress: "",
@@ -58,9 +59,11 @@ const Home = () => {
     }));
   }, [address, chain]);
 
+  console.log("POLLROOT")
   useEffect(() => {
     if (!formData.selectedToken?.address) return;
     if (!blockNumber) return;
+    console.log("POLL",blockNumber)
     getTokenData(formData.selectedToken.address).then((data) => {
       setFormData((prevState) => ({ ...prevState, selectedToken: data }));
     });

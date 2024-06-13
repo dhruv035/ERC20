@@ -5,9 +5,17 @@ import {
   useTransactionContext,
 } from "@/app/context/RootContext";
 import useERC20 from "@/app/actions/erc20Hooks";
+import { useAccount, useBlockNumber, useGasPrice } from "wagmi";
 
 const PendingTransaction = () => {
-  const { chain, gasPrice, blockNumber } = useChainContext();
+  const { data: gasPrice } = useGasPrice({
+    query: {
+      staleTime: 1_000,
+      refetchInterval: 1_000,
+    },
+  });
+  const {chain} = useAccount();
+  const { data:blockNumber } = useBlockNumber();
   const { timer } = useTimerContext();
   const { pendingState } = useTransactionContext();
   const { sendReplace } = useERC20();

@@ -12,13 +12,13 @@ import Input from "../../BaseComponents/Input";
 import { isAddress } from "viem";
 import Modal from "../../BaseComponents/Modal";
 import { addToken, removeToken } from "@/app/actions/localStorageUtils";
-import { Spinner } from "../../BaseComponents";
+import { Button, Spinner, Toggle } from "../../BaseComponents";
 import useAlchemyHooks from "@/app/actions/useAlchemyHooks";
 import { shortenHash } from "@/app/actions/utils";
-import { LuCopy } from "react-icons/lu";
+import { LuCircle, LuCopy, LuTrash2 } from "react-icons/lu";
 import { LuCopyCheck } from "react-icons/lu";
-import Tooltip from "../../BaseComponents/Tooltip";
 import { useAccount, useBlockNumber } from "wagmi";
+import { FaCircle } from "react-icons/fa";
 
 //I had previously factored this into a seperate Modal component but there is no re usage of Modal
 const TokenSearchModal = ({
@@ -55,6 +55,18 @@ const TokenSearchModal = ({
   const [importedTokens, setImportedTokens] = useState<TokenData[]>();
   const [importedTokensArray, setImportedTokensArray] = useState<string[]>();
 
+  const filteredImportedTokens = useMemo(() => {
+    if (!importedTokens) return [] as TokenData[];
+    if (input === "") return importedTokens;
+    const filteredData = importedTokens.filter((token) => {
+      return (
+        token.metaData.name?.toLowerCase().startsWith(input.toLowerCase()) ||
+        token.metaData.symbol?.toLowerCase().startsWith(input.toLowerCase())
+      );
+    });
+    return filteredData;
+  }, [input, importedTokens]);
+
   console.log("importedTokensArray", importedTokensArray);
   const filteredTokens = useMemo(() => {
     if (!tokens) return [] as TokenData[];
@@ -79,7 +91,7 @@ const TokenSearchModal = ({
       const data = localStorage.getItem("tokensBook");
       if (data && data !== "") return JSON.parse(data);
     }
-  }, [window]);
+  }, []);
   //Reset Search Text
   useEffect(() => {
     setInput("");
@@ -96,7 +108,7 @@ const TokenSearchModal = ({
     } else if (importedTokensLocal && importedTokensLocal.length > 0) {
       setImportedTokensArray(importedTokensLocal);
     }
-  }, [importedTokensArray, importedTokensLocal]);
+  }, [importedTokensArray, importedTokensLocal, getTokenDataArray]);
 
   useEffect(() => {
     if (!address) return;
@@ -125,7 +137,7 @@ const TokenSearchModal = ({
   const isValid = useMemo<boolean>(() => {
     if (!isCustom) return false;
     return isAddress(input);
-  }, [input]);
+  }, [input, isCustom]);
   useEffect(() => {
     if (!isCustom) return;
     if (!isValid) {
@@ -135,7 +147,7 @@ const TokenSearchModal = ({
     getTokenData(input).then((tokenData) => {
       if (tokenData) setCustomToken(tokenData);
     });
-  }, [isValid, isCustom]);
+  }, [isValid, isCustom, input, getTokenData]);
 
   const handleStorageUpdate = useCallback((event: StorageEvent) => {
     if (event.key === "tokensBook") {
@@ -156,21 +168,31 @@ const TokenSearchModal = ({
   }, [handleStorageUpdate]);
   return (
     <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
-      <p className="mt-4 text-2xl text-white">Select a Token</p>
-      <div className="flex flex-row">
-        <p className="mr-4 w-full origin-left font-bold text-accent transition ease-in-out sm:w-fit">
-          Import custom token
+      <p className="text-2xl text-white">Select a Token</p>
+      <div className="mt-4 flex w-8/12 flex-row items-center justify-center text-center">
+        <p
+          className={`w-4/12 text-sm font-bold ${!isCustom ? "text-accent" : ""}`}
+        >
+          Search Tokens
         </p>
 
-        <input
-          className="border-4 border-solid accent-amber-600"
-          checked={isCustom}
-          type="checkbox"
-          onChange={(e) => {
-            setInput("");
-            setIsCustom((prevState) => !prevState);
-          }}
-        />
+        <div className="max-w-4/12 items-center">
+          <Toggle
+            className="mr-0 shadow-shadow md:mr-0"
+            isTrue={isCustom}
+            toggle={() => {
+              setInput("");
+              setIsCustom((prevState) => !prevState);
+            }}
+            falseImage={<FaCircle className="h-full w-full text-white" />}
+            trueImage={<FaCircle className="h-full w-full text-accent" />}
+          />
+        </div>
+        <p
+          className={`w-4/12 text-sm font-bold ${isCustom ? "text-accent" : ""}`}
+        >
+          Import token
+        </p>
       </div>
       {isCustom ? (
         <div className="flex flex-col items-center">
@@ -182,17 +204,15 @@ const TokenSearchModal = ({
             onChange={(e) => setInput(e.target.value)}
           />
 
-          <button
+          <Button
             disabled={!isValid || fetchStates.tokenData}
             onClick={(e) => {
               handleImport();
             }}
-            className={`mb-4 mr-1 flex w-full max-w-[90px] flex-row items-center whitespace-nowrap rounded-full border-[1px] border-background bg-background p-1 text-xs text-text shadow-fuller shadow-shadow enabled:hover:border-accent enabled:hover:text-accent enabled:hover:shadow-accent sm:mr-4 sm:p-2 nohover:text-accent nohover:shadow-accent`}
           >
             {"Import token"}
-          </button>
+          </Button>
           {fetchStates.tokenData && <Spinner />}
-          {/*className={`flex flex-row w-full max-w-[90px] mr-1 mb-4 p-1 rounded-full border-[1px] border-background sm:p-2 sm:mr-4 items-center bg-background shadow-shadow shadow-fuller text-text text-xs whitespace-nowrap enabled:hover:border-accent enabled:hover:shadow-accent enabled:hover:text-accent nohover:text-accent nohover:shadow-accent`} */}
           {
             //Show metaData here
             customToken && (
@@ -234,107 +254,110 @@ const TokenSearchModal = ({
           ) : (
             <ul className="no-scrollbar flex h-fit max-h-[200px] w-full justify-center overflow-scroll rounded-2xl border-[1px] border-white bg-transparent">
               <div className="flex w-full max-w-96 flex-col rounded-2xl">
-                {importedTokens &&
-                  importedTokens.map((token: TokenData, index: number) => {
-                    return (
-                      <li
-                        className="flex flex-row items-center bg-transparent p-2 first:rounded-t-2xl last:rounded-b-2xl hover:cursor-pointer hover:bg-background"
-                        key={index}
-                        onClick={(e) => {
-                          setIsOpen(false);
-                          setToken(token);
-                        }}
-                      >
-                        <Image
-                          className="mx-2 rounded-[100%] shadow-fuller shadow-gray-200"
-                          src={
-                            token.metaData?.logo ?? "https://picsum.photos/200"
-                          }
-                          alt=""
-                          style={{
-                            width: "40px",
-                            height: "40px",
+                {filteredImportedTokens &&
+                  filteredImportedTokens.map(
+                    (token: TokenData, index: number) => {
+                      return (
+                        <li
+                          className="flex flex-row items-center bg-transparent p-4 first:rounded-t-2xl last:rounded-b-2xl hover:cursor-pointer hover:bg-background"
+                          key={index}
+                          onClick={(e) => {
+                            setIsOpen(false);
+                            setToken(token);
                           }}
-                          width={30}
-                          height={30}
-                        ></Image>
-                        <div className="flex w-full flex-col">
-                          <div className="flex flex-row">
-                            <div className="flex flex-row whitespace-nowrap">
-                              {token.metaData?.name}{" "}
-                              <p className="ml-2 justify-center border-[1px] border-gray-400 bg-transparent px-1 text-xs text-gray-400">
-                                Imported
+                        >
+                          <Image
+                            className="mx-2 rounded-[100%] shadow-fuller shadow-gray-200"
+                            src={
+                              token.metaData?.logo ??
+                              "https://picsum.photos/200"
+                            }
+                            alt=""
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                            }}
+                            width={30}
+                            height={30}
+                          ></Image>
+                          <div className="flex w-full flex-col">
+                            <div className="flex flex-row">
+                              <div className="flex flex-row whitespace-nowrap">
+                                {token.metaData?.name}{" "}
+                                <p className="ml-2 content-center rounded-xl border-[1px] border-accent bg-transparent px-1 text-xs text-accent opacity-70">
+                                  Imported
+                                </p>
+                              </div>
+                              <div className="flex w-full flex-row-reverse">
+                                <button
+                                  className="ml-2 text-red-400"
+                                  onClick={(e) => {
+                                    console.log("HEREPREVSTATE");
+                                    e.stopPropagation();
+                                    const data = removeToken(token.address);
+                                    setImportedTokensArray(data);
+                                  }}
+                                >
+                                  <LuTrash2 />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="font-600 group flex flex-row items-center text-sm">
+                              Address:{" "}
+                              <p className="mr-4 text-accent">
+                                {shortenHash(token.address)}
+                              </p>
+                              <div className="flex w-full flex-row-reverse">
+                                {copiedAddress === token.address ? (
+                                  <LuCopyCheck
+                                    size={14}
+                                    className="hover:cursor-copy"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      navigator.clipboard.writeText(
+                                        token.address,
+                                      );
+                                      setCopiedAddress(token.address);
+                                    }}
+                                  />
+                                ) : (
+                                  <LuCopy
+                                    size={14}
+                                    className="hover:cursor-copy"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      navigator.clipboard.writeText(
+                                        token.address,
+                                      );
+                                      setCopiedAddress(token.address);
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                            <div className="font-600 flex flex-row text-sm">
+                              Balance:{" "}
+                              <p
+                                className={`${
+                                  fetchStates.allTokenData
+                                    ? "animate-pulse-fast text-red-600"
+                                    : "text-accent"
+                                }`}
+                              >
+                                {token.balance}
                               </p>
                             </div>
-                            <div className="flex w-full flex-row-reverse">
-                              <button
-                                className="ml-2 text-red-400"
-                                onClick={(e) => {
-                                  console.log("HEREPREVSTATE");
-                                  e.stopPropagation();
-                                  const data = removeToken(token.address);
-                                  setImportedTokensArray(data);
-                                }}
-                              >
-                                X
-                              </button>
-                            </div>
                           </div>
-                          <div className="font-600 group flex flex-row items-center text-sm">
-                            Address:{" "}
-                            <p className="mr-4 text-accent">
-                              {shortenHash(token.address)}
-                            </p>
-                            <div className="flex w-full flex-row-reverse">
-                              {copiedAddress === token.address ? (
-                                <LuCopyCheck
-                                  size={14}
-                                  className="hover:cursor-copy"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    navigator.clipboard.writeText(
-                                      token.address,
-                                    );
-                                    setCopiedAddress(token.address);
-                                  }}
-                                />
-                              ) : (
-                                <LuCopy
-                                  size={14}
-                                  className="hover:cursor-copy"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    navigator.clipboard.writeText(
-                                      token.address,
-                                    );
-                                    setCopiedAddress(token.address);
-                                  }}
-                                />
-                              )}
-                            </div>
-                          </div>
-                          <div className="font-600 flex flex-row text-sm">
-                            Balance:{" "}
-                            <p
-                              className={`${
-                                fetchStates.allTokenData
-                                  ? "animate-pulse-fast text-red-600"
-                                  : "text-accent"
-                              }`}
-                            >
-                              {token.balance}
-                            </p>
-                          </div>
-                        </div>
-                      </li>
-                    );
-                  })}
+                        </li>
+                      );
+                    },
+                  )}
                 {filteredTokens.map((token: TokenData, index: number) => {
                   return (
                     <li
-                      className="flex flex-row items-center bg-transparent p-2 first:rounded-t-2xl last:rounded-b-2xl hover:cursor-pointer hover:bg-background"
+                      className="flex flex-row items-center bg-transparent p-4 first:rounded-t-2xl last:rounded-b-2xl hover:cursor-pointer hover:bg-background"
                       key={index}
                       onClick={(e) => {
                         setIsOpen(false);

@@ -232,7 +232,7 @@ const useAlchemyHooks = () => {
 
   const getTransaction = useCallback(
     async (hash: string) => {
-      if (fetchRef.current?.allTokenData === true) {
+      if (fetchRef.current?.transaction === true) {
         return;
       }
       setFetchState("transaction", true);

@@ -17,10 +17,15 @@ const SendTokens = ({
   isUpdating: boolean | undefined;
   setFormData: Dispatch<SetStateAction<FormData>>;
 }) => {
-  const [localDisable, setLocalDisable] = useState<boolean>(false);
+  const [localDisable, setLocalDisable] = useState<boolean>(
+    (typeof window !== "undefined" &&
+      localStorage.getItem("localDisable") === "true") ??
+      false,
+  );
   const { pendingState } = useTransactionContext();
   const { sendTokens } = useERC20();
 
+  console.log("DISABLESTATES",pendingState.isTxDisabled,localDisable)
   //Form Updaters for the Input Field
   const setToken = (token: TokenData) => {
     setFormData((prevState) => {

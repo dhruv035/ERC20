@@ -10,11 +10,17 @@ import {
   useState,
 } from "react";
 
-import { useWaitForTransactionReceipt } from "wagmi";
+import {
+  useAccount,
+  useBlockNumber,
+  usePublicClient,
+  useWaitForTransactionReceipt,
+} from "wagmi";
 import { ToastTypes } from "./ToastContext";
 import { shortenHash } from "../actions/utils";
 import { useChainContext, useToast } from "./RootContext";
 import useAlchemyHooks from "../actions/useAlchemyHooks";
+import { BaseError, CallExecutionError } from "viem";
 
 /*This is the bridge for any transactions to go through, it's disabled by isTxDisabled if there is data loading or if 
   there's a pending transaction. The data loading is enforced to ensure no transaction is done without latest data.
@@ -65,9 +71,16 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   const [pendingState, setPendingState] = useState<PendingState>({
     isTxDisabled: false,
   } as PendingState);
-  const { blockNumber, chain, isFetchingChain } = useChainContext();
+  const { chain } = useAccount();
 
-  const { getTransaction: getAlchemyTransaction, isFetchingAlchemy } =
+  const { data: blockNumber } = useBlockNumber({
+    query: {
+      staleTime: 1_000,
+      refetchInterval: 1_000,
+    },
+  });
+  const publicClient = usePublicClient();
+  const { getTransaction: getAlchemyTransaction } =
     useAlchemyHooks();
 
   const blockRef = useRef<bigint>();
@@ -77,17 +90,17 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   blockRef.current = blockNumber;
 
   const pendingTxLocal =
-    (typeof localStorage !== "undefined" &&
-      localStorage.getItem("pendingTx")) ??
-    undefined;
-
+    typeof window !== "undefined"
+      ? localStorage.getItem("pendingTx")
+      : undefined;
   //Watch transaction status if there's a hash pending
   const {
+    data,
     status,
     error,
-    isFetching: isFetchingTransaction,
+
   } = useWaitForTransactionReceipt({
-    hash: pendingState.pendingTx as `0x${string}`,
+    hash: pendingStateRef.current.pendingTx,
   });
   //Update UI on transaction state changes
 
@@ -105,30 +118,25 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
       },
       8000,
     );
+    localStorage.removeItem("pendingTx");
+    localStorage.removeItem("pendingBlock");
     setPendingState({ isTxDisabled: false } as PendingState);
-    localStorage.setItem("pendingTx", "");
-    localStorage.setItem("pendingBlock", "");
   }, [chain?.blockExplorers?.default?.url, openToast, pendingState.pendingTx]);
 
-  const handleError = useCallback(() => {
-    if (!error)
-      openToast(
-        {
-          title: "Transaction Error",
-          type: ToastTypes.ERROR,
-          message: "Transaction Failed",
-        },
-        6000,
-      );
-    else
-      openToast(
-        {
-          title: "Transaction Error",
-          type: ToastTypes.ERROR,
-          message: error.message,
-        },
-        6000,
-      );
+  useEffect(() => {
+    console.log("ERROR2", data);
+  }, [data]);
+  const handleError = useCallback(async () => {
+    if (!error) return;
+
+    openToast(
+      {
+        title: "Transaction Error",
+        type: ToastTypes.ERROR,
+        message: error.message,
+      },
+      6000,
+    );
   }, [openToast, error]);
 
   //Side Effects
@@ -142,38 +150,40 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   }, [status, handleSuccess, handleError]);
 
   //Handle localStorage updates here
+  console.log("PENDINGTXLOCAL", pendingTxLocal);
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key === "pendingTx") {
+          setPendingState((prevState) => {
+        console.log("PREVSTATEINHERE",prevState)
+            return {
+              ...prevState,
+              pendingTx: event.newValue!==null?event.newValue as `0x${string}`:undefined,
+            }
+          });
         if (
-          event.newValue !== "" &&
+          event.newValue!==null &&
           (event.newValue as `0x${string}`) !==
-            pendingStateRef.current?.pendingTx
+          pendingStateRef.current?.pendingTx
         ) {
-          setPendingState((prevState) => ({
-            ...prevState,
-            pendingTx: event.newValue as `0x${string}`,
-          }));
-
-          openRef.current &&
-            openRef.current(
-              {
-                title: "Transaction Detected",
-                type:
-                  event.oldValue !== "" ? ToastTypes.ALERT : ToastTypes.SUCCESS,
-                message: `New ${
-                  event.oldValue !== "" ? "replace" : ""
-                } transaction added to the watcher. Hash is ${event.newValue}`,
-                urlText: "View in Explorer",
-                url: `https://etherscan.com/tx/${event.newValue}`,
-              },
-              6000,
-            );
+          openToast(
+            {
+              title: "Transaction Detected",
+              type:
+                event.oldValue !== null ? ToastTypes.ALERT : ToastTypes.SUCCESS,
+              message: `New ${
+                event.oldValue !== null ? "replace" : ""
+              } transaction added to the watcher. Hash is ${event.newValue}`,
+              urlText: "View in Explorer",
+              url: `https://etherscan.com/tx/${event.newValue}`,
+            },
+            6000,
+          );
         }
       } else if (event.key === "pendingBlock") {
         setPendingState((prevState) => ({
           ...prevState,
-          pendingTxBlock: BigInt(event.newValue ?? ""),
+          pendingTxBlock: event.newValue!==null?BigInt(event.newValue):undefined,
         }));
       }
     };
@@ -181,15 +191,18 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       removeEventListener("storage", handleStorage);
     };
-  }, []);
+  }, [openToast]);
 
   //Update PendingState when pendingTx hash changes
   useEffect(() => {
-    if (pendingState.pendingTx) {
+    if (pendingState.pendingTx&&pendingState.pendingTx!==null&&pendingState.pendingTx.toString()!=="") {
+      console.log("PENDINGSTATETX", pendingState.pendingTx);
       //This function is used to fetch transaction because alchemy will find transaction even if they were not included in a block (Since the tx was sent originally by Alchemy RPC)
       //We use this function to fetch gas fee paid and nonce for a stuck transaction
+
       getAlchemyTransaction(pendingState.pendingTx).then((result) => {
         if (!result) return;
+
         setPendingState((prevState) => ({
           ...prevState,
           maxFee: result.maxFeePerGas?.toBigInt(),
@@ -201,13 +214,13 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
         }));
       });
     } else {
+      console.log("PENDINGSTATE: REACHED HERE AGAIN");
       if (pendingTxLocal && pendingTxLocal !== "") {
         setPendingState((prevState) => ({
           ...prevState,
           pendingTx: pendingTxLocal as `0x${string}`,
         }));
       } else {
-        if (!isFetchingAlchemy && !isFetchingTransaction && !isFetchingChain)
           setPendingState((prevState) => ({
             ...prevState,
             isTxDisabled: false,
@@ -218,19 +231,17 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
     pendingTxLocal,
     pendingState.pendingTx,
     getAlchemyTransaction,
-    isFetchingAlchemy,
-    isFetchingTransaction,
-    isFetchingChain,
   ]);
 
+  console.log("PENDINGSTATE", pendingState);
   //Update pendingTxBlock, kept seperate to avoid unnecessary refetch
   useEffect(() => {
     if (!pendingState.pendingTxBlock) {
-      const blockNumber = localStorage.getItem("pendingBlock");
-      if (blockNumber && blockNumber !== "") {
+      const localBlockNumber = localStorage.getItem("pendingBlock");
+      if (localBlockNumber && localBlockNumber !== null) {
         setPendingState((prevState) => ({
           ...prevState,
-          pendingTxBlock: BigInt(blockNumber),
+          pendingTxBlock: BigInt(localBlockNumber),
         }));
       }
     }

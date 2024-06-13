@@ -14,7 +14,7 @@ const Input = ({
   type?: string;
   placeholder?: string;
   value: string;
-  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
   disabled?: boolean;
   className?: string;

@@ -92,7 +92,8 @@ const TokenInput = ({
                         },
                         6000,
                       );
-                      setAmount(selectedToken.balance);
+                      //setAmount(selectedToken.balance);
+                      setAmount(e.target.value);
                     } else setAmount(e.target.value);
                   }}
                 />
