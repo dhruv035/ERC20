@@ -11,5 +11,24 @@ export const setPendingHash = (hash: string) => {
   };
   
 export const getPendingBlock = () => {
-  localStorage.getItem("pendingBlock");
+  return localStorage.getItem("pendingBlock");
 };
+
+export const setPendingBlock = (blockNumber:string) => {
+  localStorage.setItem("pendingBlock",blockNumber);
+}
+
+export const unsetPendingBlock = () => {
+  localStorage.removeItem("pendingBlock")
+}
+
+export const getStorageDisable = () => {
+  return localStorage.getItem("localDisable")
+}
+
+export const setStorageDisable = (bool:boolean) => {
+  localStorage.setItem("localDisable",bool?"true":"false")
+}
+export const unsetStorageDisable = () => {
+  localStorage.removeItem("localDisable");
+}

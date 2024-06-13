@@ -8,7 +8,6 @@ export const getTokensBook = (chainId: number | undefined) => {
 export const addToken = (chainId: number | undefined) => (address: string) => {
   if (!chainId) return;
 
-  console.log("HEHEH")
   const tokensArray = localStorage.getItem(`tokensBook:${chainId}`);
   if (!tokensArray || tokensArray === "") {
     localStorage.setItem(`tokensBook:${chainId}`, JSON.stringify([address]));
@@ -24,7 +23,6 @@ export const addToken = (chainId: number | undefined) => (address: string) => {
 export const removeToken =
   (chainId: number | undefined) => (address: string) => {
     if (!chainId) return;
-    console.log("HEHEH")
     const tokensArray = localStorage.getItem(`tokensBook:${chainId}`);
     if (!tokensArray) return;
 

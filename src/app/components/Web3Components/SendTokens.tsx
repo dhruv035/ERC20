@@ -7,6 +7,7 @@ import { useTransactionContext } from "@/app/context/RootContext";
 import useERC20 from "@/app/actions/erc20Hooks";
 import Spinner from "../BaseComponents/Spinner";
 import Tooltip from "../BaseComponents/Tooltip";
+import { getStorageDisable, setStorageDisable } from "@/app/actions/localStorage/pendingState";
 
 const SendTokens = ({
   formData,
@@ -19,7 +20,7 @@ const SendTokens = ({
 }) => {
   const [localDisable, setLocalDisable] = useState<boolean>(
     (typeof window !== "undefined" &&
-      localStorage.getItem("localDisable") === "true") ??
+      getStorageDisable() === "true") ??
       false,
   );
   const { pendingState } = useTransactionContext();
@@ -47,7 +48,7 @@ const SendTokens = ({
   const handleSend = useCallback(async () => {
     if (!formData.selectedToken) return;
     setLocalDisable(true);
-    localStorage.setItem("localDisable", "true");
+    setStorageDisable(true);
     try {
       await sendTokens(
         formData.selectedToken,
@@ -62,7 +63,7 @@ const SendTokens = ({
     } catch (error) {
     } finally {
       setLocalDisable(false);
-      localStorage.setItem("localDisable", "false");
+      setStorageDisable(false);
     }
   },[formData.amount, formData.selectedToken,formData.toAddress,sendTokens,setFormData])
   //Side Effects

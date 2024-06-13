@@ -19,7 +19,7 @@ import { ToastTypes } from "./ToastContext";
 import { shortenHash } from "../actions/utils";
 import { useToast } from "./RootContext";
 import useAlchemyHooks from "../actions/useAlchemyHooks";
-import { unsetPendingHash } from "../actions/localStorage/pendingState";
+import { getPendingBlock, getPendingHash, unsetPendingBlock, unsetPendingHash } from "../actions/localStorage/pendingState";
 
 /*This is the bridge for any transactions to go through, it's disabled by isTxDisabled if there is data loading or if 
   there's a pending transaction. The data loading is enforced to ensure no transaction is done without latest data.
@@ -88,12 +88,12 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
 
   const pendingTxLocal =
     typeof window !== "undefined"
-      ? localStorage.getItem("pendingTx")
+      ? getPendingHash()
       : undefined;
 
   const localBlockNumber =
     typeof window !== "undefined"
-      ? localStorage.getItem("pendingBlock")
+      ? getPendingBlock()
       : undefined;
   //Watch transaction status if there's a hash pending
   const { data, status, error } = useWaitForTransactionReceipt({
@@ -116,7 +116,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
       8000,
     );
     unsetPendingHash();
-    localStorage.removeItem("pendingBlock");
+    unsetPendingBlock();
     setPendingState({ isTxDisabled: false } as PendingState);
   }, [
     chain?.blockExplorers?.default?.url,

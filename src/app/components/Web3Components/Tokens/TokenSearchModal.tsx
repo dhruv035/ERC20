@@ -150,14 +150,13 @@ const TokenSearchModal = ({
 
   const getAlchemyDataArray = useCallback(() => {
     if (importedTokensArray) {
-      console.log("IMPOLOCO", importedTokensArray);
       if (importedTokensArray.length > 0)
         getTokenDataArray(importedTokensArray).then((data) => {
           setImportedTokens(data);
         });
       else setImportedTokens([]);
     }
-  }, [importedTokensArray]);
+  }, [importedTokensArray,getTokenDataArray]);
   useEffect(() => {
     getAlchemyDataArray();
   }, [getAlchemyDataArray]);

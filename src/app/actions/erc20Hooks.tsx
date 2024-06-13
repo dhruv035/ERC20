@@ -6,7 +6,13 @@ import {
 } from "../context/RootContext";
 import { TokenData } from "../page";
 import { writeContract } from "wagmi/actions";
-import { useAccount, useBlockNumber, useConfig, useSendTransaction, useWriteContract } from "wagmi";
+import {
+  useAccount,
+  useBlockNumber,
+  useConfig,
+  useSendTransaction,
+  useWriteContract,
+} from "wagmi";
 import {
   TransactionExecutionErrorType,
   erc20Abi,
@@ -15,14 +21,14 @@ import {
 } from "viem";
 import { ToastTypes } from "../components/BaseComponents/Toast";
 import { shortenHash } from "./utils";
+import { setPendingBlock, setPendingHash } from "./localStorage/pendingState";
 
 const useERC20 = () => {
   const { gasSettings } = useChainContext();
-  const {chain} = useAccount();
-  const {data:blockNumber} = useBlockNumber();
+  const { chain } = useAccount();
+  const { data: blockNumber } = useBlockNumber();
   const { pendingState, setPendingState } = useTransactionContext();
   const { sendTransaction } = useSendTransaction();
-
 
   const config = useConfig();
   const { open: openToast } = useToast();
@@ -57,12 +63,8 @@ const useERC20 = () => {
               pendingTx: hash,
               pendingTxBlock: blockRef.current,
             }));
-            localStorage.setItem("pendingTx", hash);
-            blockRef.current &&
-              localStorage.setItem(
-                "pendingTxBlock",
-                blockRef.current.toString(),
-              );
+            setPendingHash(hash);
+            blockRef.current && setPendingBlock(blockRef.current.toString());
           },
         },
       );
@@ -107,11 +109,8 @@ const useERC20 = () => {
           pendingTx: hash,
           pendingTxBlock: blockRef.current,
         }));
-        localStorage.setItem("pendingTx", hash);
-        localStorage.setItem(
-          "pendingBlock",
-          blockRef.current ? blockRef.current.toString() : "",
-        );
+        setPendingHash(hash);
+        blockRef.current && setPendingBlock(blockRef.current.toString());
       } catch (error: any) {
         const e = error as TransactionExecutionErrorType;
         openToast(

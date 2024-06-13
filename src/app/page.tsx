@@ -7,6 +7,7 @@ import Tooltip from "./components/BaseComponents/Tooltip";
 import { AnimatePresence, m } from "framer-motion";
 import { useAccount, useBlockNumber } from "wagmi";
 import useAlchemyHooks from "./actions/useAlchemyHooks";
+import { useTransactionContext } from "./context/RootContext";
 
 export type TokenData = {
   balance: string;
@@ -31,6 +32,7 @@ const Home = () => {
   const [isSendTab, setIsSendTab] = useState<boolean>(false);
   const { getTokenData, fetchStates } = useAlchemyHooks();
 
+  const { pendingState } = useTransactionContext();
   const { address, chain } = useAccount();
   const { data: blockNumber } = useBlockNumber();
   const [formData, setFormData] = useState<FormData>({
@@ -57,28 +59,20 @@ const Home = () => {
     setForm({ amount: "", selectedToken: undefined });
   }, [address, chain]);
 
-
-  const updateTokenData = useCallback(()=>{
+  const updateTokenData = useCallback(() => {
     getTokenData(formData.selectedToken?.address).then((data) => {
       setFormData((prevState) => ({ ...prevState, selectedToken: data }));
     });
-  },[getTokenData,formData.selectedToken?.address])
+  }, [getTokenData, formData.selectedToken?.address]);
   useEffect(() => {
     if (!blockNumber) return;
     updateTokenData();
   }, [blockNumber, updateTokenData]);
   return (
     <div className="flex min-h-[92vh] w-full flex-col items-center px-8 md:min-h-[90vh]">
-      <AnimatePresence>
-        <m.div
-          key="pendingTx"
-          initial={{ opacity: 0, translateY: -100 }}
-          animate={{ opacity: 1, translateY: 0, transition: { duration: 1 } }}
-          exit={{ opacity: 0, translateY: -100, transition: { duration: 1 } }}
-        >
-          <PendingTransaction />
-        </m.div>
-      </AnimatePresence>
+      <div className="h-fit">
+      <PendingTransaction />
+</div>
       <div className="my-4 min-h-96 w-full max-w-[400px] overflow-hidden rounded-[10px] bg-[rgba(255,255,255,0.04)] p-2 text-accent shadow-fuller shadow-accent">
         <div className="grid grid-cols-2 text-center text-text">
           <button
