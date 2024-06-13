@@ -215,7 +215,7 @@ const TokenSearchModal = ({
           />
 
           <Button
-            disabled={!isValid || fetchStates.tokenData}
+            disabled={!isValid || fetchStates.tokenData||customToken?.metaData.name===""}
             onClick={(e) => {
               handleImport();
             }}

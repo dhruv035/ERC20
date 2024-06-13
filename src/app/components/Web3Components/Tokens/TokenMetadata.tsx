@@ -1,7 +1,11 @@
 import { TokenData } from "@/app/page"
 import Image from "next/image"
 const TokenMetadata = ({token}:{token:TokenData}) => {
-    return (<div className="flex flex-col items-center">
+    
+    if(token.metaData.name==="")
+        return <div>Not Found</div>
+    return (
+    <div className="flex flex-col items-center">
         {"Logo"}
         <Image
           className="mx-2 rounded-[100%] shadow-fuller shadow-gray-200"
@@ -20,7 +24,8 @@ const TokenMetadata = ({token}:{token:TokenData}) => {
         <p>Symbol: {token.metaData?.symbol}</p>
         <p>Decimals: {token.metaData?.decimals}</p>
         <p>Balance: {token.balance}</p>
-      </div>)
+      </div>
+      )
 }
 
 export default TokenMetadata;
