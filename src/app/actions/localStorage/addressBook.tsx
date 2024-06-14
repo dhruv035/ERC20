@@ -2,7 +2,7 @@
 
 //Update to Maintain a data structure for a contact
 export const getAddressBook = () => {
-    const data = localStorage.getItem("tokensArray");
+    const data = localStorage.getItem("addressBook");
     if(data)
     return JSON.parse(data) as Array<string>;
 }
@@ -25,11 +25,11 @@ export const addAddress = (address: string) => {
   
     const parsed: Array<string> = JSON.parse(addressArray);
     parsed.splice(index, 1);
-    localStorage.setItem("tokensArray", JSON.stringify(parsed));
+    localStorage.setItem("addressBook", JSON.stringify(parsed));
   };
   
 
 export const unsetAddressBook = () => {
-    localStorage.removeItem("tokensArray");
+    localStorage.removeItem("addressBook");
   };
 

@@ -212,7 +212,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   //Update PendingState when pendingTx hash changes
   useEffect(() => {
     if (pendingState.pendingTx) {
-      if (pendingTxLocal) handleAlchemy();
+    handleAlchemy();
       //This function is used to fetch transaction because alchemy will find transaction even if they were not included in a block (Since the tx was sent originally by Alchemy RPC)
       //We use this function to fetch gas fee paid and nonce for a stuck transaction
     } else {
@@ -228,7 +228,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
         }));
       }
     }
-  }, [pendingTxLocal, pendingState.pendingTx, handleAlchemy]);
+  }, [ pendingState.pendingTx]);
 
   //Update pendingTxBlock, kept seperate to avoid unnecessary refetch
   useEffect(() => {

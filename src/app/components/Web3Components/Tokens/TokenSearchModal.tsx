@@ -82,9 +82,12 @@ const TokenSearchModal = ({
   );
 
   const handleImport = useCallback(async () => {
+    console.log("ARR1,custom", customToken, chainId);
     if (!customToken) return;
     if (!chainId) return;
+
     const arr = addLocalToken(input);
+    console.log("ArrR", arr);
     setImportedTokensArray(arr);
     setIsCustom(false);
     setInput("");
@@ -154,16 +157,11 @@ const TokenSearchModal = ({
 
   const updateAlchemyTokenData = useCallback(() => {
     if (importedTokensArray && importedTokensArray.length > 0) {
-      if (
-        JSON.stringify(importedTokensArray) ===
-        JSON.stringify(importedTokensLocal)
-      )
-        getTokenDataArray(importedTokensArray).then((data) =>
-          setImportedTokens(data),
-        );
-      else setImportedTokens([]);
+      getTokenDataArray(importedTokensArray).then((data) =>
+        setImportedTokens(data),
+      );
     } else setImportedTokens([]);
-  }, [importedTokensArray, getTokenDataArray]);
+  }, [importedTokensArray]);
 
   useEffect(() => {
     updateAlchemyTokenData();
