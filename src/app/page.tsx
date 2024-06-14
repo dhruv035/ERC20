@@ -70,9 +70,9 @@ const Home = () => {
   }, [blockNumber, updateTokenData]);
   return (
     <div className="flex min-h-[92vh] w-full flex-col items-center px-8 md:min-h-[90vh]">
-      <div className="h-fit">
+     
       <PendingTransaction />
-</div>
+    
       <div className="my-4 min-h-96 w-full max-w-[400px] overflow-hidden rounded-[10px] bg-[rgba(255,255,255,0.04)] p-2 text-accent shadow-fuller shadow-accent">
         <div className="grid grid-cols-2 text-center text-text">
           <button

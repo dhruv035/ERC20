@@ -27,9 +27,9 @@ const PendingTransaction = () => {
       {pendingTx && (
         <m.div
           key="pendingTx"
-          initial={{ opacity: 0, translateX: -200, scaleY:0,height:0 }}
-          animate={{ opacity: 1, translateX: 0, scaleY:1,height:400, transition: { duration: 0.3 } }}
-          exit={{ opacity: 0, translateX: -200, scaleY:0,height:0, transition: { duration: 0.3 } }}
+          initial={{ opacity: 0,height:0 }}
+          animate={{ opacity:1,height:400, transition: { duration: 0.3 } }}
+          exit={{ opacity: 0,height:0, transition: { duration: 0.3 } }}
           className="my-8 w-full max-w-[400px] rounded-[10px] bg-[rgba(255,255,255,0.04)] p-4 text-accent shadow-fuller shadow-accent"
         >
           <p className="mb-4 overflow-hidden text-center text-2xl text-accent">

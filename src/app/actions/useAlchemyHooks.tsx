@@ -45,24 +45,19 @@ export const AlchemyContext = createContext<AlchemyContextType>(
   {} as AlchemyContextType,
 );
 
+const defaultFetchState:FetchStates = {
+  metaData: false,
+    tokenData: false,
+    tokenDataArray: false,
+    allTokenData: false,
+    transaction: false,
+}
 const useAlchemyHooks = () => {
   const { address, chainId } = useAccount();
 
-  const [fetchStates, setFetchStates] = useState<FetchStates>({
-    metaData: false,
-    tokenData: false,
-    tokenDataArray: false,
-    allTokenData: false,
-    transaction: false,
-  });
+  const [fetchStates, setFetchStates] = useState<FetchStates>(defaultFetchState);
 
-  const [initializeStates, setInitializeStates] = useState<FetchStates>({
-    metaData: false,
-    tokenData: false,
-    tokenDataArray: false,
-    allTokenData: false,
-    transaction: false,
-  });
+  const [initializeStates, setInitializeStates] = useState<FetchStates>(defaultFetchState);
 
   const alchemy = useMemo(() => {
     const settings = {
@@ -75,14 +70,6 @@ const useAlchemyHooks = () => {
     };
     return new Alchemy(settings);
   }, [chainId]);
-
-  const isFetching = useMemo<boolean>(() => {
-    let flag = Object.values(fetchStates).every((state) => {
-      state !== true;
-    });
-    if (flag) return true;
-    else return false;
-  }, [fetchStates]);
 
   const setFetchState = (type: keyof FetchStates, state: boolean) => {
     setFetchStates((prevState) => ({ ...prevState, [type]: state }));
@@ -113,24 +100,24 @@ const useAlchemyHooks = () => {
     [alchemy],
   );
   const resetInitializeStates = () => {
-    setInitializeStates({
-      metaData: false,
-      tokenData: false,
-      tokenDataArray: false,
-      allTokenData: false,
-      transaction: false,
-    });
+    setInitializeStates(defaultFetchState);
   };
+
+  const resetFetchStates = () => {
+    setFetchStates(defaultFetchState)
+  }
 
   useEffect(() => {
     resetInitializeStates();
-  }, [address]);
+  }, [address,chainId]);
 
   const getTokenDataArray = useCallback(
     async (tokenAddresses: Array<string>) => {
       if (fetchRef.current?.tokenDataArray === true) {
+        console.log("REJECTING",tokenAddresses)
         return;
       }
+      else
       setFetchState("tokenDataArray", true);
       const res = await alchemy.core.getTokenBalances(
         address as string,
@@ -250,7 +237,6 @@ const useAlchemyHooks = () => {
   );
 
   return {
-    isFetchingAlchemy: isFetching,
     fetchStates,
     initializeStates,
     getMetaData,

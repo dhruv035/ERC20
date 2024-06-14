@@ -125,9 +125,12 @@ const TokenSearchModal = ({
   //Local index is kept as the string and parsed when passed to the state in sideEffect
 
   const importedTokensLocal = useMemo<string[]>(() => {
+    console.log("IMPORTEDRUNNING", getTokensBook(chainId));
     if (typeof window === "undefined") {
+      console.log("IMPORTEDRUNNING1");
       return [];
     } else {
+      console.log("IMPORTEDRUNNING2");
       return getTokensBook(chainId);
     }
   }, [chainId]);
@@ -143,23 +146,28 @@ const TokenSearchModal = ({
   }, [isOpen]);
 
   useEffect(() => {
+    console.log("IMPORTEDLOCAL", importedTokensLocal);
     if (importedTokensLocal && importedTokensLocal.length > 0) {
       setImportedTokensArray(importedTokensLocal);
     }
   }, [importedTokensLocal]);
 
-  const getAlchemyDataArray = useCallback(() => {
-    if (importedTokensArray) {
-      if (importedTokensArray.length > 0)
-        getTokenDataArray(importedTokensArray).then((data) => {
-          setImportedTokens(data);
-        });
+  const updateAlchemyTokenData = useCallback(() => {
+    if (importedTokensArray && importedTokensArray.length > 0) {
+      if (
+        JSON.stringify(importedTokensArray) ===
+        JSON.stringify(importedTokensLocal)
+      )
+        getTokenDataArray(importedTokensArray).then((data) =>
+          setImportedTokens(data),
+        );
       else setImportedTokens([]);
-    }
-  }, [importedTokensArray,getTokenDataArray]);
+    } else setImportedTokens([]);
+  }, [importedTokensArray, getTokenDataArray]);
+
   useEffect(() => {
-    getAlchemyDataArray();
-  }, [getAlchemyDataArray]);
+    updateAlchemyTokenData();
+  }, [updateAlchemyTokenData]);
 
   //Refresh data every block
   useEffect(() => {
@@ -170,10 +178,6 @@ const TokenSearchModal = ({
     });
   }, [blockNumber, address, getAllTokenData]);
 
-  useEffect(() => {
-    setTokens([]);
-    setImportedTokens([]);
-  }, [chainId]);
   useEffect(() => {
     if (!isCustom) return;
     if (!isValid) {
