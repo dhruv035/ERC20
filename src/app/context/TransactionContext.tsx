@@ -82,9 +82,11 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
 
   const blockRef = useRef<bigint>();
   const pendingStateRef = useRef<PendingState>();
+  const pendingStatePrev = useRef<PendingState>(pendingState);
 
   pendingStateRef.current = pendingState;
   blockRef.current = blockNumber;
+
 
   const pendingTxLocal =
     typeof window !== "undefined"
@@ -228,7 +230,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
         }));
       }
     }
-  }, [ pendingState.pendingTx]);
+  }, [pendingTxLocal, pendingState.pendingTx, handleAlchemy]);
 
   //Update pendingTxBlock, kept seperate to avoid unnecessary refetch
   useEffect(() => {

@@ -99,6 +99,8 @@ const useAlchemyHooks = () => {
     },
     [alchemy],
   );
+
+  
   const resetInitializeStates = () => {
     setInitializeStates(defaultFetchState);
   };
@@ -113,6 +115,7 @@ const useAlchemyHooks = () => {
 
   const getTokenDataArray = useCallback(
     async (tokenAddresses: Array<string>) => {
+      
       if (fetchRef.current?.tokenDataArray === true) {
         console.log("REJECTING",tokenAddresses)
         return;

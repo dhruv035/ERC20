@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { TokenData } from "../../../page";
@@ -57,6 +58,8 @@ const TokenSearchModal = ({
     fetchStates,
   } = useAlchemyHooks();
 
+
+  const prevRef = useRef(importedTokensArray);
   //Functions
   const handleStorageUpdate = useCallback(
     (event: StorageEvent) => {
@@ -82,12 +85,9 @@ const TokenSearchModal = ({
   );
 
   const handleImport = useCallback(async () => {
-    console.log("ARR1,custom", customToken, chainId);
     if (!customToken) return;
     if (!chainId) return;
-
     const arr = addLocalToken(input);
-    console.log("ArrR", arr);
     setImportedTokensArray(arr);
     setIsCustom(false);
     setInput("");
@@ -128,12 +128,9 @@ const TokenSearchModal = ({
   //Local index is kept as the string and parsed when passed to the state in sideEffect
 
   const importedTokensLocal = useMemo<string[]>(() => {
-    console.log("IMPORTEDRUNNING", getTokensBook(chainId));
     if (typeof window === "undefined") {
-      console.log("IMPORTEDRUNNING1");
       return [];
     } else {
-      console.log("IMPORTEDRUNNING2");
       return getTokensBook(chainId);
     }
   }, [chainId]);
@@ -149,23 +146,25 @@ const TokenSearchModal = ({
   }, [isOpen]);
 
   useEffect(() => {
-    console.log("IMPORTEDLOCAL", importedTokensLocal);
+    console.log("IMPORTEDLOCAL",importedTokensLocal)
     if (importedTokensLocal && importedTokensLocal.length > 0) {
       setImportedTokensArray(importedTokensLocal);
     }
   }, [importedTokensLocal]);
 
-  const updateAlchemyTokenData = useCallback(() => {
-    if (importedTokensArray && importedTokensArray.length > 0) {
-      getTokenDataArray(importedTokensArray).then((data) =>
-        setImportedTokens(data),
-      );
-    } else setImportedTokens([]);
-  }, [importedTokensArray]);
-
   useEffect(() => {
-    updateAlchemyTokenData();
-  }, [updateAlchemyTokenData]);
+    console.log("IMPORTEDTOKENSARRAY",JSON.stringify(prevRef.current),JSON.stringify(importedTokensArray))
+    if (importedTokensArray) {
+      if (JSON.stringify(prevRef.current)!==JSON.stringify(importedTokensArray))
+        {
+          console.log("INTERNALREACH")
+          getTokenDataArray(importedTokensArray).then((data) => {
+            prevRef.current=importedTokensArray
+          setImportedTokens(data);
+        });}
+      else setImportedTokens([]);
+    }
+  },[importedTokensArray,getTokenDataArray]);
 
   //Refresh data every block
   useEffect(() => {
