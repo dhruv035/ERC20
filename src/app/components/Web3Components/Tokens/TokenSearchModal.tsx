@@ -58,7 +58,6 @@ const TokenSearchModal = ({
     fetchStates,
   } = useAlchemyHooks();
 
-
   const prevRef = useRef(importedTokensArray);
   //Functions
   const handleStorageUpdate = useCallback(
@@ -146,25 +145,21 @@ const TokenSearchModal = ({
   }, [isOpen]);
 
   useEffect(() => {
-    console.log("IMPORTEDLOCAL",importedTokensLocal)
+    console.log("IMPORTEDLOCAL", importedTokensLocal);
     if (importedTokensLocal && importedTokensLocal.length > 0) {
       setImportedTokensArray(importedTokensLocal);
     }
   }, [importedTokensLocal]);
 
   useEffect(() => {
-    console.log("IMPORTEDTOKENSARRAY",JSON.stringify(prevRef.current),JSON.stringify(importedTokensArray))
     if (importedTokensArray) {
-      if (JSON.stringify(prevRef.current)!==JSON.stringify(importedTokensArray))
-        {
-          console.log("INTERNALREACH")
-          getTokenDataArray(importedTokensArray).then((data) => {
-            prevRef.current=importedTokensArray
-          setImportedTokens(data);
-        });}
-      else setImportedTokens([]);
-    }
-  },[importedTokensArray,getTokenDataArray]);
+      console.log("INTERNALREACH");
+      getTokenDataArray(importedTokensArray).then((data) => {
+        prevRef.current = importedTokensArray;
+        setImportedTokens(data);
+      });
+    } else setImportedTokens([]);
+  }, [importedTokensArray]);
 
   //Refresh data every block
   useEffect(() => {

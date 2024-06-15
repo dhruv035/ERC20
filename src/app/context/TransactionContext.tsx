@@ -82,12 +82,11 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
 
   const blockRef = useRef<bigint>();
   const pendingStateRef = useRef<PendingState>();
-  const pendingStatePrev = useRef<PendingState>(pendingState);
 
   pendingStateRef.current = pendingState;
   blockRef.current = blockNumber;
 
-
+  
   const pendingTxLocal =
     typeof window !== "undefined"
       ? getPendingHash()
@@ -196,29 +195,10 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [openToast]);
 
-  const handleAlchemy = useCallback(async () => {
-    if (!pendingState.pendingTx) return;
-    const result = await getAlchemyTransaction(pendingState.pendingTx);
-    if (!result) return;
-
-    setPendingState((prevState) => ({
-      ...prevState,
-      maxFee: result.maxFeePerGas?.toBigInt(),
-      maxPriorityFee: result.maxPriorityFeePerGas?.toBigInt(),
-      data: result.data,
-      to: result.to,
-      nonce: result.nonce,
-      isTxDisabled: true,
-    }));
-  }, [pendingState.pendingTx, getAlchemyTransaction]);
   //Update PendingState when pendingTx hash changes
   useEffect(() => {
-    if (pendingState.pendingTx) {
-    handleAlchemy();
-      //This function is used to fetch transaction because alchemy will find transaction even if they were not included in a block (Since the tx was sent originally by Alchemy RPC)
-      //We use this function to fetch gas fee paid and nonce for a stuck transaction
-    } else {
-      if (pendingTxLocal && pendingTxLocal !== "") {
+   
+      if (pendingTxLocal) {
         setPendingState((prevState) => ({
           ...prevState,
           pendingTx: pendingTxLocal as `0x${string}`,
@@ -229,9 +209,27 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
           isTxDisabled: false,
         }));
       }
-    }
-  }, [pendingTxLocal, pendingState.pendingTx, handleAlchemy]);
+    
+  }, [pendingTxLocal]);
 
+  useEffect(()=>{
+
+    if(pendingState.pendingTx)
+    getAlchemyTransaction(pendingState.pendingTx).then(result=>{
+      if (!result) return;
+
+    setPendingState((prevState) => ({
+      ...prevState,
+      maxFee: result.maxFeePerGas?.toBigInt(),
+      maxPriorityFee: result.maxPriorityFeePerGas?.toBigInt(),
+      data: result.data,
+      to: result.to,
+      nonce: result.nonce,
+      isTxDisabled: true,
+    }));
+    });
+    
+  },[pendingState.pendingTx])
   //Update pendingTxBlock, kept seperate to avoid unnecessary refetch
   useEffect(() => {
     if (!pendingState.pendingTxBlock) {

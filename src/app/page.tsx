@@ -32,7 +32,6 @@ const Home = () => {
   const [isSendTab, setIsSendTab] = useState<boolean>(false);
   const { getTokenData, fetchStates } = useAlchemyHooks();
 
-  const { pendingState } = useTransactionContext();
   const { address, chain } = useAccount();
   const { data: blockNumber } = useBlockNumber();
   const [formData, setFormData] = useState<FormData>({
