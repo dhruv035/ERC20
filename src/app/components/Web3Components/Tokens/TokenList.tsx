@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import Image from "next/image";
 import { shortenHash } from "@/app/actions/utils";
 import { LuCopy, LuCopyCheck, LuTrash2 } from "react-icons/lu";
+import CopyIcon from "../../BaseComponents/CopyIcon";
 const TokenList = ({
   tokens,
   isImported,
@@ -33,30 +34,28 @@ const TokenList = ({
               setToken(token);
             }}
           >
-            <div className="w-8 h-8 md:w-[40px] md:h-[40px] mx-2 rounded-full shadow-fuller shadow-gray-200">
             <Image
-              className="rounded-full"
+              className="mr-4 w-[50px] rounded-full shadow-fuller shadow-gray-200"
               src={token.metaData?.logo ?? "https://picsum.photos/200"}
               alt=""
-             
               width={30}
               height={30}
             ></Image>
-            </div>
+
             <div className="flex w-full flex-col items-center md:items-stretch">
               <div className="flex flex-col-reverse items-center md:flex-row">
-                <div className="flex flex-col items-center md:flex-row whitespace-nowrap">
+                <div className="flex flex-col items-center whitespace-nowrap md:flex-row">
                   {token.metaData?.name}{" "}
                   {isImported && (
-                    <p className="md:ml-2 content-center rounded-xl border-[1px] border-accent bg-transparent px-1 text-xs text-accent opacity-70">
+                    <p className="content-center rounded-xl border-[1px] border-accent bg-transparent px-1 text-xs text-accent opacity-70 md:ml-2">
                       Imported
                     </p>
                   )}
                 </div>
                 {isImported && deleteImportedToken && (
-                  <div className="flex w-full justify-center md:justify-stretch md:flex-row-reverse">
+                  <div className="flex w-full justify-center md:flex-row-reverse md:justify-stretch">
                     <button
-                      className="md:ml-2 text-red-400"
+                      className="text-red-400 md:ml-2"
                       onClick={deleteImportedToken(token.address)}
                     >
                       <LuTrash2 />
@@ -70,33 +69,11 @@ const TokenList = ({
                   {shortenHash(token.address)}
                 </p>
                 <div className="flex w-full flex-col text-xs md:flex-row-reverse md:text-sm">
-                  {copiedAddress === token.address ? (
-                    <LuCopyCheck
-                      size={14}
-                      className="hover:cursor-copy"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        navigator.clipboard.writeText(token.address);
-                        setCopiedAddress(token.address);
-                      }}
-                    />
-                  ) : (
-                    <LuCopy
-                      size={14}
-                      className="hover:cursor-copy"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        navigator.clipboard.writeText(token.address);
-                        setCopiedAddress(token.address);
-                      }}
-                    />
-                  )}
+                  <CopyIcon text={token.address} />
                 </div>
               </div>
               <div className="font-600 flex flex-row text-sm">
-                <p className="">Balance:{" "}</p>
+                <p className="">Balance: </p>
                 <p
                   className={`${
                     isUpdating

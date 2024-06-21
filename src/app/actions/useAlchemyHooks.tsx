@@ -116,6 +116,8 @@ const useAlchemyHooks = () => {
   const getTokenDataArray = useCallback(
     async (tokenAddresses: Array<string>) => {
       
+      if(tokenAddresses.length<1)
+        return;
       if (fetchRef.current?.tokenDataArray === true) {
         console.log("REJECTING",tokenAddresses)
         return;
