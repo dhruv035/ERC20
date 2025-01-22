@@ -8,25 +8,7 @@ import { AnimatePresence, m } from "framer-motion";
 import { useAccount, useBlockNumber } from "wagmi";
 import useAlchemyHooks from "./actions/useAlchemyHooks";
 import { useTransactionContext } from "./context/RootContext";
-
-export type TokenData = {
-  balance: string;
-  address: string;
-  metaData: MetaData;
-};
-
-export type MetaData = {
-  decimals: number;
-  logo: string | null;
-  name: string;
-  symbol: string;
-};
-
-export type FormData = {
-  selectedToken: TokenData | undefined;
-  toAddress: string;
-  amount: string;
-};
+import { FormData } from "@/lib/types";
 
 const Home = () => {
   const [isSendTab, setIsSendTab] = useState<boolean>(false);

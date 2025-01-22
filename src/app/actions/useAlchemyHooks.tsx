@@ -13,10 +13,9 @@ import {
   TokenMetadataResponse,
   TransactionResponse,
 } from "alchemy-sdk";
-import { MetaData, TokenData } from "../page";
+import { MetaData, TokenData } from "@/lib/types";
 import { formatUnits, hexToBigInt } from "viem";
-import { useChainContext } from "../context/RootContext";
-import { useAccount, useChainId } from "wagmi";
+import { useAccount } from "wagmi";
 
 //Global contexts may be persisted and managed here
 

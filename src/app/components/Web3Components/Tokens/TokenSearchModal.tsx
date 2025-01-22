@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { TokenData } from "../../../page";
+import { TokenData } from "@/lib/types";
 import Input from "../../BaseComponents/Input";
 import { isAddress, isAddressEqual } from "viem";
 import Modal from "../../BaseComponents/Modal";

@@ -4,7 +4,7 @@ import {
   useToast,
   useTransactionContext,
 } from "../context/RootContext";
-import { TokenData } from "../page";
+import { TokenData } from "@/lib/types";
 import { writeContract } from "wagmi/actions";
 import {
   useAccount,
