@@ -1,8 +1,5 @@
 import { useCallback, useRef } from "react";
-import {
-  useToast,
-  useTransactionContext,
-} from "../context/RootContext";
+import { useToast, useTransactionContext } from "../context/RootContext";
 import { GasSettings, PendingState, TokenData } from "@/lib/types";
 import { writeContract } from "wagmi/actions";
 import {
@@ -11,13 +8,9 @@ import {
   useConfig,
   useSendTransaction,
 } from "wagmi";
-import {
-  TransactionExecutionErrorType,
-  erc20Abi,
-  parseUnits,
-} from "viem";
+import { TransactionExecutionErrorType, erc20Abi, parseUnits } from "viem";
 import { ToastTypes } from "../components/BaseComponents/Toast";
-import {  formatGasData, shortenHash } from "../lib/utils";
+import { formatGasData, shortenHash } from "../lib/utils";
 
 const useERC20 = () => {
   const { chain } = useAccount();
@@ -33,7 +26,7 @@ const useERC20 = () => {
 
   const sendReplace = () => {
     try {
-      console.log(pendingState)
+      console.log(pendingState);
       sendTransaction(
         {
           to: pendingState?.to as `0x${string}`,
@@ -42,7 +35,7 @@ const useERC20 = () => {
         },
         {
           onSuccess: (hash) => {
-            console.log("pendingState",pendingState)
+            console.log("pendingState", pendingState);
             openToast(
               {
                 title: "Replace Transaction Sent",
@@ -56,16 +49,17 @@ const useERC20 = () => {
               6000,
             );
             setPendingState((prevState) => {
-              if(prevState) return {
-                ...prevState,
-                pendingTx: hash,
-                pendingTxBlock: blockRef.current,
-              }
-              else return {
-                pendingTx: hash,
-                pendingTxBlock: blockRef.current,
-              } as PendingState
-
+              if (prevState)
+                return {
+                  ...prevState,
+                  pendingTx: hash,
+                  pendingTxBlock: blockRef.current,
+                };
+              else
+                return {
+                  pendingTx: hash,
+                  pendingTxBlock: blockRef.current,
+                } as PendingState;
             });
           },
         },
@@ -74,7 +68,12 @@ const useERC20 = () => {
   };
 
   const sendTokens = useCallback(
-    async (token: TokenData, toAddress: `0x${string}`, amount: string, gasSettings: GasSettings) => {
+    async (
+      token: TokenData,
+      toAddress: `0x${string}`,
+      amount: string,
+      gasSettings: GasSettings,
+    ) => {
       const gasData = formatGasData(gasSettings);
       try {
         let hash = await writeContract(config, {
@@ -84,7 +83,12 @@ const useERC20 = () => {
           functionName: "transfer",
           args: [toAddress, parseUnits(amount, token.metaData.decimals)],
           type: "eip1559",
-          ...gasData,
+          ...(gasData.maxFeePerGas && !gasSettings.isDisabled
+            ? {
+                ...gasData,
+                maxPriorityFeePerGas: gasData.maxPriorityFeePerGas ?? BigInt(0),
+              }
+            : {}),
         });
         openToast(
           {
@@ -101,22 +105,23 @@ const useERC20 = () => {
           6000,
         );
         setPendingState((prevState) => {
-          if(prevState) return {
-            ...prevState,
-            pendingTx: hash,
-            pendingTxBlock: blockRef.current,
-            isTxDisabled: true
-          }
-          else return {
-            pendingTx: hash,
-            pendingTxBlock: blockRef.current,
-            isTxDisabled: true
-          } as PendingState
-        })
-
+          if (prevState)
+            return {
+              ...prevState,
+              pendingTx: hash,
+              pendingTxBlock: blockRef.current,
+              isTxDisabled: true,
+            };
+          else
+            return {
+              pendingTx: hash,
+              pendingTxBlock: blockRef.current,
+              isTxDisabled: true,
+            } as PendingState;
+        });
       } catch (error: any) {
         const e = error as TransactionExecutionErrorType;
-        console.log("ERROR",e)
+        console.log("ERROR", e);
         openToast(
           {
             title: e.name,
