@@ -95,14 +95,14 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   const handleSuccess = useCallback(() => {
     openToast(
       {
-        title: "Transaction Mined",
+        title: pendingState?.pendingTx!==data?.transactionHash ? "Transaction Replaced" : "Transaction Mined",
         type: ToastTypes.SUCCESS,
         message:
           "Transaction executed. the hash for transaction is " +
-          shortenHash(pendingState?.pendingTx as string),
+          shortenHash(data?.transactionHash as string),
         url:
           chain?.blockExplorers?.default?.url +
-          `/tx/${pendingState?.pendingTx}`,
+          `/tx/${data?.transactionHash}`,
         urlText: "View in Explorer",
       },
       8000,
@@ -112,7 +112,7 @@ const TransactionProvider = ({ children }: { children: ReactNode }) => {
   }, [
     chain?.blockExplorers?.default?.url,
     openToast,
-    pendingState?.pendingTx,
+    data?.transactionHash,
     setPendingState,
   ]);
 

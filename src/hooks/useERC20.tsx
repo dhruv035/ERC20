@@ -26,16 +26,26 @@ const useERC20 = () => {
 
   const sendReplace = () => {
     try {
-      console.log(pendingState);
+      if (!pendingState?.nonce) {
+        openToast(
+          {
+            title: "Error",
+            type: ToastTypes.ERROR,
+            message: "Cannot replace transaction - nonce not available",
+          },
+          6000,
+        );
+        return;
+      }
+
       sendTransaction(
         {
-          to: pendingState?.to as `0x${string}`,
-          data: pendingState?.data as `0x${string}`,
-          nonce: pendingState?.nonce,
+          to: pendingState.to as `0x${string}`,
+          data: pendingState.data as `0x${string}`,
+          nonce: pendingState.nonce,
         },
         {
           onSuccess: (hash) => {
-            console.log("pendingState", pendingState);
             openToast(
               {
                 title: "Replace Transaction Sent",
@@ -54,17 +64,31 @@ const useERC20 = () => {
                   ...prevState,
                   pendingTx: hash,
                   pendingTxBlock: blockRef.current,
+                  nonce: prevState.nonce
                 };
               else
                 return {
                   pendingTx: hash,
                   pendingTxBlock: blockRef.current,
+                  nonce: pendingState.nonce,
+                  isTxDisabled: true,
                 } as PendingState;
             });
           },
         },
       );
-    } catch (error) {}
+    } catch (error) {
+      const e = error as TransactionExecutionErrorType;
+      openToast(
+        {
+          title: e.name,
+          type: ToastTypes.ERROR,
+          message: e.shortMessage,
+        },
+        6000,
+      );
+      throw e;
+    }
   };
 
   const sendTokens = useCallback(
