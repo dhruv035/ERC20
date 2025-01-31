@@ -7,7 +7,6 @@ import { useTransactionContext } from "@/context/RootContext";
 import useERC20 from "@/hooks/useERC20";
 import Spinner from "../BaseComponents/Spinner";
 import Tooltip from "../BaseComponents/Tooltip";
-import useGasData from "@/hooks/useGasData";
 import { FaAddressBook } from "react-icons/fa";
 import AddressBookModal from "./AddressBookModal";
 import { getStorageDisable, setStorageDisable } from "@/lib/localStorage/pendingState";
