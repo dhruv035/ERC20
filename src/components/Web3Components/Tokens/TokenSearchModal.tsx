@@ -76,6 +76,10 @@ const TokenSearchModal = ({
 
   //Alchemy Hooks
 
+  const isImportedToken = useMemo(()=>{
+    if(!importedTokensArray) return false;
+    return importedTokensArray.includes(customToken?.address as string);
+  },[importedTokensArray,customToken])
   //Functions
   const handleStorageUpdate = useCallback(
     (event: StorageEvent) => {
@@ -99,7 +103,6 @@ const TokenSearchModal = ({
   const removeLocalToken = useCallback(
     (input: string) => {
       const data =removeToken(chainId)(input)
-      refetchImportedTokenData()
       return data;
     },
     [chainId]
@@ -116,7 +119,8 @@ const TokenSearchModal = ({
 
 
   useEffect(() => {
-    refetchImportedTokenData();
+    if(importedTokensArray) refetchImportedTokenData()
+
   },[importedTokensArray]);
 
   useEffect(() => {
@@ -232,6 +236,8 @@ const TokenSearchModal = ({
             className="text-black placeholder-gray-700 placeholder:italic"
             boxClassName="items-center"
             placeholder="Enter token Address"
+            isError={(!!input&&!isAddress(input))||isImportedToken}
+            errorMessage={isImportedToken?"Token already imported":"Invalid token address"}
             value={input}
             onChange={(e) => setInput(e.target.value)}
           />
@@ -240,7 +246,8 @@ const TokenSearchModal = ({
             disabled={
               !isAddress(input) ||
               isCustomTokenDataFetching ||
-              !customToken
+              !customToken ||
+              isImportedToken
             }
             onClick={(e) => {
               handleImport();
@@ -267,7 +274,7 @@ const TokenSearchModal = ({
           {
             <ul className="no-scrollbar flex h-fit max-h-[200px] w-full justify-center overflow-scroll rounded-2xl border-[1px] border-white bg-transparent">
               <div className="flex w-full max-w-96 flex-col items-center rounded-2xl">
-                {filteredImportedTokens.length > 0 && (!isImportedTokenDataInitialized?(
+                {importedTokensArray&&(!isImportedTokenDataInitialized?(
                   <Spinner className="my-4"/>
                 ):(
                   <TokenList
@@ -283,9 +290,9 @@ const TokenSearchModal = ({
                     }}
                   />
                 ))}
-                {filteredTokens.length > 0 && (!isAllTokenDataInitialized?(
+                { (!isAllTokenDataInitialized?( 
                   <Spinner className="my-4"/>
-                ):(
+                ):(allTokenData&&allTokenData.length>0&&(
                   <TokenList
                     tokens={filteredTokens}
                     isUpdating={isAllTokenDataFetching}
@@ -293,7 +300,7 @@ const TokenSearchModal = ({
                     setToken={setToken}
                     setIsOpen={setIsOpen}
                   />
-                ))}
+                )))}
               </div>
             </ul>
           }

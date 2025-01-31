@@ -14,6 +14,7 @@ export const addToken = (chainId: number | undefined) => (address: string) => {
     return [address];
   } else {
     const parsed: Array<string> = JSON.parse(tokensArray);
+    if(parsed.includes(address)) return parsed;
     parsed.push(address);
     localStorage.setItem(`tokensBook:${chainId}`, JSON.stringify(parsed));
     return parsed;

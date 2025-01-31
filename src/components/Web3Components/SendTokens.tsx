@@ -126,7 +126,7 @@ const SendTokens = ({
               >
                 Receiver
               </p>
-              <FaAddressBook className="text-accent mr-2 self-center" onClick={()=>setAddressModal(true)} />
+              <FaAddressBook className="text-accent mr-2 cursor-pointer self-center" onClick={()=>setAddressModal(true)} />
               </div>
               <Input
                 placeholder="Enter Receiver's Address"

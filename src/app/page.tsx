@@ -75,7 +75,7 @@ const Home = () => {
             className={`group/tooltip text-nowrap rounded-t-xl border-[1.5px] border-b-0 border-accent bg-transparent p-2 ${
               !isSendTab
                 ? "z-[1] text-accent shadow-fuller shadow-accent"
-                : "text-text"
+                : "text-text cursor-default"
             } `}
           >
             Send Tokens
@@ -93,7 +93,7 @@ const Home = () => {
             className={`-ml-[1px] text-nowrap rounded-t-xl border-[1.5px] border-b-0 border-accent bg-transparent p-2 pb-0 ${
               isSendTab
                 ? "z-[1] text-accent shadow-fuller shadow-accent"
-                : "text-text"
+                : "text-text cursor-default"
             }`}
           >
             Chain Data
