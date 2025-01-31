@@ -1,10 +1,10 @@
 "use client";
 import { Honk } from "next/font/google";
 import "./globals.css";
-import { ContextProvider } from "./context/RootContext";
-import Navbar from "./components/LayoutComponents/Navbar";
+import { ContextProvider } from "../context/RootContext";
+import Navbar from "../components/LayoutComponents/Navbar";
 import { useEffect, useRef, useState } from "react";
-import { getDarkMode, setDarkMode } from "./actions/localStorage/misc";
+import { getDarkMode, setDarkMode } from "@/lib/localStorage/misc";
 
 const honk = Honk({
   subsets: ["latin-ext"],

@@ -25,6 +25,7 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 :root {
+ 
 }
 
 .no-scrollbar {
@@ -33,14 +34,19 @@ input[type="number"] {
 }
 
 /*
+ input::placeholder {
+    color: black;
+  }
 dark/light theme colors, add light color in root class and dark version in .dark(overrides root) and then import the variables in the tailwind config
 */
 @layer base {
+ 
   :root {
     --accent-base: rgb(0, 125, 7);
     --accent: var(--accent-base);
     --base-green: rgb(156, 236, 6);
     --bg: white;
+    --backdrop: rgba(0, 0, 0, 0.5);
     --text: black;
     --text-base: black;
     --slider: rgb(209, 208, 208);
@@ -53,11 +59,15 @@ dark/light theme colors, add light color in root class and dark version in .dark
       --accent: rgb(168, 168, 168);
       --shadow: rgb(168, 168, 168);
     }
+    input::placeholder {
+      color: black;
+    }
   }
 
   .dark {
     --accent-base: rgb(156, 236, 6);
     --bg: black;
+    --backdrop: rgba(0, 0, 0, 0.5);
     --text: white;
     --text-base: white;
     --slider: white;

@@ -20,8 +20,7 @@ Setup a .env.local file and create the respective keys for your project
 
 ```bash
 NEXT_PUBLIC_PROJECT_ID=""  //Wallet Connect API key(Project ID),
-NEXT_PUBLIC_ALCHEMY_SEPOLIA=""
-NEXT_PUBLIC_ALCHEMY_MAINNET=""
+NEXT_PUBLIC_ALCHEMY=""
 ```
 
 ### 3) Run local server
