@@ -63,9 +63,6 @@ const TokenSearchModal = ({
     isInitialized: isImportedTokenDataInitialized,
   } = useTokensData({ tokenAddresses: importedTokensArray });
 
-  console.log("IMPORTED",importedTokenData,isImportedTokenDataInitialized)
-  console.log("CUSTOM",customToken,isCustomTokenDataInitialized)
-  console.log("ALL",allTokenData,isAllTokenDataInitialized)
   const { address, chainId } = useAccount();
   const { data: blockNumber } = useBlockNumber({
     query: {
@@ -83,7 +80,6 @@ const TokenSearchModal = ({
   //Functions
   const handleStorageUpdate = useCallback(
     (event: StorageEvent) => {
-      console.log("STORAGE",event)
       if (event.key === `tokensBook:${chainId}`) {
         if (!event.newValue) {
           setImportedTokensArray([]);

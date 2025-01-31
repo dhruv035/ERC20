@@ -10,16 +10,19 @@ import { Button, Input, Modal, Toggle } from "../BaseComponents";
 
 import { FaCircle, FaTrash } from "react-icons/fa";
 import { isAddress } from "viem";
-import { addAddress, getAddressBook, removeAddress } from "@/lib/localStorage/addressBook";
+import {
+  addAddress,
+  getAddressBook,
+  removeAddress,
+} from "@/lib/localStorage/addressBook";
 import { AddressBook } from "@/lib/types";
 import { shortenHash } from "@/lib/utils";
 import { LuTrash2 } from "react-icons/lu";
-import Tooltip from "../BaseComponents/Tooltip";
 
 const AddressBookModal = ({
   isOpen,
   setIsOpen,
-  setAddress
+  setAddress,
 }: {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -33,14 +36,27 @@ const AddressBookModal = ({
   const [hoverIndex, setHoverIndex] = useState<number>(-1);
   const [addressBook, setAddressBook] = useState<Array<AddressBook>>();
 
+  const filteredAddressBook = useMemo(() => {
+    if (!addressBook) return [];
+    if (input === "") return addressBook;
+    try {
+      return addressBook.filter(
+        (address) =>
+          address.name?.toLowerCase().match(input.toLowerCase()) ||
+          address.address.toLowerCase() === input.toLowerCase(),
+      );
+    } catch (e) {
+      return addressBook;
+    }
+  }, [addressBook, input]);
   useEffect(() => {
     const data = getAddressBook();
     setAddressBook(data);
   }, []);
 
   const handleAddAddress = (address: string) => {
-    if(!name||name==="") return;
-    addAddress(address,name);
+    if (!name || name === "") return;
+    addAddress(address, name);
     setAddressBook(getAddressBook());
     setIsNew(false);
     setInput("");
@@ -93,8 +109,8 @@ const AddressBookModal = ({
             label="Name"
             placeholder="Enter Name"
             errorMessage={"Error:Name is required"}
-            isError={name===""}
-            value={name?name:""}
+            isError={name === ""}
+            value={name ? name : ""}
             onChange={(e) => setName(e.target.value)}
           />
 
@@ -105,12 +121,12 @@ const AddressBookModal = ({
             placeholder="Wallet Address"
             value={input}
             errorMessage={"Error:Input is not a valid address"}
-            isError={(!!input&&input!==""&&!isAddress(input))}
+            isError={!!input && input !== "" && !isAddress(input)}
             onChange={(e) => setInput(e.target.value)}
           />
-          
+
           <Button
-            disabled={!isAddress(input)||!name ||name===""}
+            disabled={!isAddress(input) || !name || name === ""}
             onClick={(e) => {
               handleAddAddress(input);
             }}
@@ -119,7 +135,7 @@ const AddressBookModal = ({
           </Button>
         </div>
       ) : (
-        <div className="flex w-7/12 flex-col items-center mb-2">
+        <div className="mb-2 flex w-7/12 flex-col items-center">
           <Input
             className="text-black placeholder-gray-700 placeholder:italic"
             boxClassName="items-center"
@@ -129,28 +145,50 @@ const AddressBookModal = ({
           />
 
           {
-            <ul className="no-scrollbar  hover:cursor-pointer flex h-fit max-h-[200px] w-full justify-center overflow-scroll rounded-2xl border-[1px] border-white bg-transparent">
+            <ul className="no-scrollbar flex h-fit max-h-[200px] w-full justify-center overflow-scroll rounded-2xl border-[1px] border-white bg-transparent hover:cursor-pointer">
               <div className="flex w-full max-w-96 flex-col items-center rounded-2xl">
-                {addressBook?.map((address, index) => {
-                  return <div className="group/tooltipper flex flex-col px-2 py-2 justify-between w-full" key={index} onClick={()=>{setAddress(address.address),setIsOpen(false)}}>
-                    <div className="flex flex-row justify-between w-full">
-                      <div className="flex flex-row items-center">
-                      <label className="text-sm font-bold">Name: </label>
-                      <p>{address.name}</p>
+                {filteredAddressBook?.map((address, index) => {
+                  return (
+                    <div
+                      className="group/tooltipper flex w-full flex-col justify-between px-2 py-2"
+                      key={index}
+                      onClick={() => {
+                        setAddress(address.address), setIsOpen(false);
+                      }}
+                    >
+                      <div className="flex w-full flex-row justify-between">
+                        <div className="flex flex-row items-center">
+                          <label className="text-sm font-bold">Name: </label>
+                          <p>{address.name}</p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeAddress(address.address);
+                            setAddressBook(getAddressBook());
+                          }}
+                        >
+                          <LuTrash2 className="text-red-400" />
+                        </button>
+                      </div>
+                      <div className="flex w-full flex-row items-center">
+                        <label className="text-sm font-bold">Address: </label>
+                        <p
+                          className="no-scrollbar overflow-x-scroll"
+                          onMouseEnter={() => {
+                            setHoverIndex(index);
+                          }}
+                          onMouseLeave={() => {
+                            setHoverIndex(-1);
+                          }}
+                        >
+                          {hoverIndex === index
+                            ? address.address
+                            : shortenHash(address.address, 5)}
+                        </p>
+                      </div>
                     </div>
-                    <button onClick={(e)=>{
-                      e.stopPropagation()
-                      removeAddress(address.address)
-                      setAddressBook(getAddressBook())
-                      }}>
-                      <LuTrash2 className="text-red-400"/>
-                    </button>
-                    </div>
-                  <div className=" flex flex-row w-full items-center">
-                    <label className="text-sm font-bold">Address: </label>
-                    <p className="no-scrollbar overflow-x-scroll" onMouseEnter={()=>{setHoverIndex(index)}} onMouseLeave={()=>{setHoverIndex(-1)}}>{hoverIndex===index?address.address:shortenHash(address.address,5)}</p>
-                    </div>
-                  </div>;
+                  );
                 })}
               </div>
             </ul>
